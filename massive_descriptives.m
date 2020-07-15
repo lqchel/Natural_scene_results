@@ -1,3 +1,9 @@
+%%% this function produces the descriptive statistics of Qianchen's Natural
+%%% scene patch experiment. for the figure produced, x axis is Decision x
+%%% confidence category (-4 to 4), and y axis is percentage of responses.
+%%% data = the data matrix, num_sub = number of subjects in the data file.
+
+
 function [out] = massive_descriptives(data, num_sub)
 
 Results = data;
@@ -47,41 +53,51 @@ end
 end
 pcgAP_matrix = [pcgAP_matrix(:,1:4) pcgAP_matrix(:,6:9)];
 
-%accuracy check
-% % for i = 1:9
-% % percentage_yes(i) = size(Results((Find_IAP|Find_CAP) & Results(:,9)== i-5,:),1)/...
-% %         length(Results((Find_CAP|Find_IAP),:));
-% % end
 
 %bar([1:8], frequency_N),xticklabels({'-4','-3','-2','-1','1','2','3','4'});
 m_AP = mean(pcgAP_matrix);
 se_AP = std(pcgAP_matrix)/sqrt(num_sub);
 
 
-m_All = [reshape(m_AP,[8,1]) reshape(m_N,[8,1])];
-%manually setting the x, y, and error for error bar
-for a = 1:8
-    ax(2.*a - 1)= a - 0.14;
-    ax(2.*a) = a + 0.14;
-    m_hypo1(2.*a-1) = m_AP(:,a);
-    m_hypo1(2.*a) = m_N(a);
-    se_hypo1(2.*a - 1) = se_AP(a);
-    se_hypo1(2.*a) = se_N(a);
-end
+% m_All = [reshape(m_AP,[8,1]) reshape(m_N,[8,1])];
+% %manually setting the x, y, and error for error bar
+% for a = 1:8
+%     ax(2.*a - 1)= a - 0.14;
+%     ax(2.*a) = a + 0.14;
+%     m_hypo1(2.*a-1) = m_AP(:,a);
+%     m_hypo1(2.*a) = m_N(a);
+%     se_hypo1(2.*a - 1) = se_AP(a);
+%     se_hypo1(2.*a) = se_N(a);
+% end
+
 
 colours = cbrewer('qual', 'Set1', 8); 
 out = figure;
-subplot(3,4,1),b = bar(m_All,'grouped','BarWidth',1);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-b(1).FaceColor = colours(6,:);
-b(2).FaceColor = colours(5,:);
-ylabel('Percentage of responses'),ylim([0 0.6]);
-title('Across eccentricities','FontName','Arial');
+subplot(3,4,1),errorbar([1:8],m_AP,se_AP,'.-','MarkerSize',12,'Color',colours(5,:),'MarkerEdgeColor',colours(5,:),'MarkerFaceColor',colours(5,:),'LineWidth',1);
 
 hold on
-errorbar(ax,m_hypo1,se_hypo1,'k.','MarkerSize',1,'LineWidth',1);
+errorbar(1:8,m_N,se_N,'.-','MarkerSize',12,'MarkerEdgeColor','magenta','MarkerFaceColor','magenta','Color','magenta','LineWidth',1);
 hold off
-legend({'Present patch','Null patch'});
+
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+ylim([0 0.7]);
+xlim([0.5 8.5]);
+title('Across eccentricities','FontName','Arial');
+legend({'Present','Null'});
+
+% colours = cbrewer('qual', 'Set1', 8); 
+% out = figure;
+% subplot(3,4,1),b = bar(m_All,'grouped','BarWidth',1);
+% set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
+% b(1).FaceColor = colours(6,:);
+% b(2).FaceColor = colours(5,:);
+% ylabel('Percentage of responses'),ylim([0 0.6]);
+% title('Across eccentricities','FontName','Arial');
+% 
+% hold on
+% errorbar(ax,m_hypo1,se_hypo1,'k.','MarkerSize',1,'LineWidth',1);
+% hold off
+% legend({'Present patch','Null patch'});
 
 %% hypothesis 1 on eccentricity 
 location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.48;
@@ -111,31 +127,36 @@ percentage_AP = mean(pcg_AP,1);
 se_AP = std(pcg_AP)/sqrt(num_sub);
 se_N =  std(pcg_N)/sqrt(num_sub); 
 
-    for a = 1:8
-        std_hypo3(2.*a-1) = se_AP(:,a);
-        std_hypo3(2.*a) = se_N(:,a);
-        m_hypo3(2.*a-1) = percentage_AP(:,a);
-        m_hypo3(2.*a) = percentage_N(:,a);
-        ax(2.*a - 1)= a - 0.14;
-        ax(2.*a) = a + 0.14;
-    end
+%     for a = 1:8
+%         std_hypo3(2.*a-1) = se_AP(:,a);
+%         std_hypo3(2.*a) = se_N(:,a);
+%         m_hypo3(2.*a-1) = percentage_AP(:,a);
+%         m_hypo3(2.*a) = percentage_N(:,a);
+%         ax(2.*a - 1)= a - 0.14;
+%         ax(2.*a) = a + 0.14;
+%     end
 
 m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
 
 figure(out);
-subplot(3,4,loc+1),b = bar(m_All,'grouped','BarWidth',1);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-b(1).FaceColor = colours(6,:);
-b(2).FaceColor = colours(5,:);
-ylim([0 0.9]);
+
+subplot(3,4,loc+1), errorbar([1:8],percentage_N,se_N,'.-', 'MarkerSize',12,'MarkerEdgeColor','magenta','MarkerFaceColor','magenta','Color','magenta',...
+    'LineWidth',1);
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+ylim([0 0.7]);
+xlim([0.5 8.5]);
+% xticks([]);
+hold on
+errorbar(1:8,percentage_AP,se_AP, '.-','MarkerSize',12,'MarkerEdgeColor', colours(5,:),'MarkerFaceColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+hold off
 
 if loc ~= 1
 yticks([]);
 end
 
-hold on
-errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',1);
-hold off
+% hold on
+% errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',1);
+% hold off
     if loc ==1
     title('Eccentricity = 0 dva','FontWeight','normal');
     ylabel(' ');
@@ -184,16 +205,16 @@ se_CI = std(percentage_CI)/sqrt(num_sub);
 se_IP = std(percentage_IP)/sqrt(num_sub);
 se_II = std(percentage_II)/sqrt(num_sub);
 
-for a = 1:8
-    std_CPI(2.*a-1) = se_CP(:,a);
-    std_CPI(2.*a) = se_CI(:,a);
-    std_IPI(2.*a-1) = se_IP(:,a);
-    std_IPI(2.*a) = se_II(:,a);
-    pcg_CPI(2.*a-1) = mean(percentage_CP(:,a));
-    pcg_CPI(2.*a) = mean(percentage_CI(:,a));
-    pcg_IPI(2.*a -1) = mean(percentage_IP(:,a));
-    pcg_IPI(2.*a) = mean(percentage_II(:,a));
-end
+% for a = 1:8
+%     std_CPI(2.*a-1) = se_CP(:,a);
+%     std_CPI(2.*a) = se_CI(:,a);
+%     std_IPI(2.*a-1) = se_IP(:,a);
+%     std_IPI(2.*a) = se_II(:,a);
+%     pcg_CPI(2.*a-1) = mean(percentage_CP(:,a));
+%     pcg_CPI(2.*a) = mean(percentage_CI(:,a));
+%     pcg_IPI(2.*a -1) = mean(percentage_IP(:,a));
+%     pcg_IPI(2.*a) = mean(percentage_II(:,a));
+% end
 
 percentage_CP = mean(percentage_CP,1);
 percentage_CI = mean(percentage_CI,1);
@@ -205,27 +226,48 @@ percentage_IPI = [reshape(percentage_IP,[8,1]) reshape(percentage_II,[8,1])];
 
 
 figure(out);
-subplot(3,4,5),e = bar(percentage_CPI,'grouped','BarWidth',1);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-e(1).FaceColor = colours(2,:);
-e(2).FaceColor = colours(1,:);
-ylim([0 0.6]);
-hold on
-errorbar(ax,pcg_CPI,std_CPI,'k.','MarkerSize',1,'LineWidth',0.8);
-hold off
-legend({'Congruent original', 'Congruent modified'});
 
-subplot(3,4,9),f = bar(percentage_IPI,'grouped','BarWidth',1,'LineWidth',1.2);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-f(1).FaceColor = 'white';
-f(2).FaceColor = 'white';
-f(1).EdgeColor = colours(2,:);
-f(2).EdgeColor = colours(1,:);
-ylim([0 0.6])
+subplot(3,4,5),errorbar(1:8,percentage_CP,se_CP,'.-','MarkerSize',12,'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',...
+    colours(2,:),'LineWidth',1);
 hold on
-errorbar(ax,pcg_IPI,std_IPI,'k.','MarkerSize',1,'LineWidth',0.8);
+errorbar(1:8,percentage_CI,se_CI,'.-','MarkerSize',12,'Color',colours(1,:),'MarkerFaceColor',colours(1,:),'MarkerEdgeColor',colours(1,:),...
+    'LineWidth',1);
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+xlim([0.5 8.5]),ylim([0 0.7]);
 hold off
-legend({'Incongruent original', 'Incongruent modified'});
+
+legend({'Congruent original','Congruent modified'});
+
+subplot(3,4,9),errorbar(1:8,percentage_IP,se_IP,'.--','MarkerSize',12,'Color',colours(2,:),'MarkerEdgeColor',colours(2,:),'LineWidth',1);
+hold on
+errorbar(1:8,percentage_II,se_II,'.--','MarkerSize',12,'Color',colours(1,:),'MarkerEdgeColor',colours(1,:),'LineWidth',1.2);
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+xlim([0.5 8.5]),ylim([0 0.7]);
+hold off
+
+legend({'Incongruent original','Incongruent modified'});
+
+% subplot(3,4,5),e = bar(percentage_CPI,'grouped','BarWidth',1);
+% set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
+% e(1).FaceColor = colours(2,:);
+% e(2).FaceColor = colours(1,:);
+% ylim([0 0.6]);
+% hold on
+% errorbar(ax,pcg_CPI,std_CPI,'k.','MarkerSize',1,'LineWidth',0.8);
+% hold off
+% legend({'Congruent original', 'Congruent modified'});
+% 
+% subplot(3,4,9),f = bar(percentage_IPI,'grouped','BarWidth',1,'LineWidth',1.2);
+% set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
+% f(1).FaceColor = 'white';
+% f(2).FaceColor = 'white';
+% f(1).EdgeColor = colours(2,:);
+% f(2).EdgeColor = colours(1,:);
+% ylim([0 0.6])
+% hold on
+% errorbar(ax,pcg_IPI,std_IPI,'k.','MarkerSize',1,'LineWidth',0.8);
+% hold off
+% legend({'Incongruent original', 'Incongruent modified'});
 
 
 %% hypothesis 2 on eccentricity
@@ -252,31 +294,37 @@ percentage_AP = nanmean(pcg_AP,1);
 se_AP = nanstd(pcg_AP)/sqrt(num_sub);
 se_N = nanstd(pcg_N)/sqrt(num_sub);
 
-
-    for a = 1:8
-        std_hypo3(2.*a -1)= se_AP(:,a);
-        std_hypo3(2.*a) = se_N(:,a);
-        m_hypo3(2.*a-1) = percentage_AP(:,a);
-        m_hypo3(2.*a) = percentage_N(:,a);
-        ax(2.*a - 1)= a - 0.14;
-        ax(2.*a) = a + 0.14;
-    end
-    
-m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
+% 
+%     for a = 1:8
+%         std_hypo3(2.*a -1)= se_AP(:,a);
+%         std_hypo3(2.*a) = se_N(:,a);
+%         m_hypo3(2.*a-1) = percentage_AP(:,a);
+%         m_hypo3(2.*a) = percentage_N(:,a);
+%         ax(2.*a - 1)= a - 0.14;
+%         ax(2.*a) = a + 0.14;
+%     end
+%     
+% m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
 figure(out)
-subplot(3,4,loc+5),b = bar(m_All,'grouped','BarWidth',1);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-b(1).FaceColor = colours(2,:);
-b(2).FaceColor = colours(1,:);
-ylim([0 0.9]);
 
-if loc ~= 1
-    yticks([]);
-end
-
+subplot(3,4,loc+5),errorbar(1:8,percentage_AP,se_AP,'.-','MarkerSize',12,'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',...
+    colours(2,:),'LineWidth',1);
 hold on
-errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',1);
+errorbar(1:8,percentage_N,se_N,'.-','MarkerSize',12,'Color',colours(1,:),'MarkerFaceColor',colours(1,:),'MarkerEdgeColor',colours(1,:),...
+    'LineWidth',1);
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+ylim([0 0.7]),xlim([0.5 8.5]);
 hold off
+% 
+% subplot(3,4,loc+5),b = bar(m_All,'grouped','BarWidth',1);
+% set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
+% b(1).FaceColor = colours(2,:);
+% b(2).FaceColor = colours(1,:);
+% ylim([0 0.9]);
+% 
+% if loc ~= 1
+%     yticks([]);
+% end
 
 
     
@@ -312,38 +360,48 @@ percentage_AP = nanmean(pcg_AP,1);
 se_AP = nanstd(pcg_AP)/sqrt(num_sub);
 se_N = nanstd(pcg_N)/sqrt(num_sub);
 
-
-    for a = 1:8
-        std_hypo3(2.*a -1)= se_AP(:,a);
-        std_hypo3(2.*a) = se_N(:,a);
-        m_hypo3(2.*a-1) = percentage_AP(:,a);
-        m_hypo3(2.*a) = percentage_N(:,a);
-        ax(2.*a - 1)= a - 0.14;
-        ax(2.*a) = a + 0.14;
-    end
-    
-m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
-figure(out);
-subplot(3,4,loc+9),b = bar(m_All,'grouped','BarWidth',1,'LineWidth',1.2);
-set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
-b(1).EdgeColor = colours(2,:);
-b(2).EdgeColor = colours(1,:);
-b(1).FaceColor = 'white';
-b(2).FaceColor = 'white';
-ylim([0 0.9]);
-    
-if loc ~= 1
-    yticks([]);
-end
-
-if loc == 2
-    xlabel('Decision x Confidencce');
-end
-
+subplot(3,4,loc+9),errorbar(1:8,percentage_AP,se_AP,'.--','MarkerSize',12,'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',...
+    colours(2,:),'LineWidth',1);
 hold on
-errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',0.8);
+errorbar(1:8,percentage_N,se_N,'.--','MarkerSize',12,'Color',colours(1,:),'MarkerFaceColor',colours(1,:),'MarkerEdgeColor',colours(1,:),...
+    'LineWidth',1);
+set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
+
+
+ylim([0 0.7]),xlim([0.5 8.5]);
 hold off
- 
+% 
+%     for a = 1:8
+%         std_hypo3(2.*a -1)= se_AP(:,a);
+%         std_hypo3(2.*a) = se_N(:,a);
+%         m_hypo3(2.*a-1) = percentage_AP(:,a);
+%         m_hypo3(2.*a) = percentage_N(:,a);
+%         ax(2.*a - 1)= a - 0.14;
+%         ax(2.*a) = a + 0.14;
+%     end
+%     
+% m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
+% figure(out);
+% subplot(3,4,loc+9),b = bar(m_All,'grouped','BarWidth',1,'LineWidth',1.2);
+% set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
+% b(1).EdgeColor = colours(2,:);
+% b(2).EdgeColor = colours(1,:);
+% b(1).FaceColor = 'white';
+% b(2).FaceColor = 'white';
+% ylim([0 0.9]);
+%     
+% if loc ~= 1
+%     yticks([]);
+% end
+% 
+% if loc == 2
+%     xlabel('Decision x Confidencce');
+% end
+
+% hold on
+% errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',0.8);
+% hold off
+%  
 
 % clear pcg_AP
 % clear pcg_N
