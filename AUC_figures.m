@@ -68,10 +68,11 @@ for sub = 1:num_sub
     matrix1(sub,:)= AUC;
 
 
-
 end
 
+if num_sub >= 3
 se1 = std(matrix1)/sqrt(num_sub);
+end
 
 % AUC across eccentricities
 
@@ -121,28 +122,44 @@ clear AUC;
 end
 end
 
+if num_sub >= 3
 se2 = within_se(matrix3,num_sub,3);
-
+end
+disp(matrix3)
 % plot graph
 out = figure;
-subplot(2,2,1),errorbar(-5,mean(matrix1),se1,'.','MarkerSize',12,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-ylabel('Objective Type 1 AUC');
-xlabel('Eccentricity (dva)');
-xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
-ylim([0.4 1]);
-legend('off');
-hold on
-errorbar([0 6.5 9.2],mean(matrix3),se2,'.-','MarkerSize',12,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-plot([-7 11],[0.5 0.5],'k--');
-hold off
-title('present vs. null','FontName','Arial');
 
-grandmatrix = zeros(num_sub,2);
+if num_sub < 3
+    subplot(2,2,1),plot(-5,mean(matrix1),'.','MarkerSize',14,...
+    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+    hold on
+    plot([0 6.5 9.2],mean(matrix3,1),'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    hold off
+    title('present vs. null','FontName','Arial');
+else
+    subplot(2,2,1),errorbar(-5,mean(matrix1),se1,'.','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
+    hold on
+    errorbar([0 6.5 9.2],mean(matrix3),se2,'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
+    plot([-7 11],[0.5 0.5],'k--');
+    hold off
+end  
+    ylabel('Objective Type 1 AUC');
+    xlabel('Eccentricity (dva)');
+    xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+    set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
+    ylim([0.4 1]);
+    legend('off');
+    title('present vs. null','FontName','Arial');
+
+
+
 
 %% hypothesis 2 AUC
+grandmatrix = zeros(num_sub,2);
 for condition = 1:2
     
     for sub = 1:num_sub
@@ -299,24 +316,44 @@ end
 end
 
 figure(out);
-subplot(2,2,2),d = errorbar(-5,mean(grandmatrix(:,1)),std(grandmatrix(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
+
+if num_sub<3
+    subplot(2,2,2),plot(-5,nanmean(grandmatrix(:,1)),'d','MarkerSize',6,...
     'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    legend('off');
+    hold on
+    plot(-5,mean(grandmatrix(:,2)),'d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([0 6.5 9.2],nanmean(matrix4,1),'-d','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([0 6.5 9.2],nanmean(matrix5,1),'--d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    legend({'Congruent','Incongruent'},'Box','off');
+    hold off
+else
+    subplot(2,2,2),errorbar(-5,mean(grandmatrix(:,1)),std(grandmatrix(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    legend('off');
+    hold on
+    errorbar(-5,mean(grandmatrix(:,2)),std(grandmatrix(:,2))/sqrt(num_sub),'d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    errorbar([0 6.5 9.2],nanmean(matrix4),within_se(matrix4,num_sub,3),'d-','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    errorbar([0 6.5 9.2],nanmean(matrix5),within_se(matrix5,num_sub,3),'d--','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    legend({'Congruent','Incongruent'},'Box','off');
+    hold off
+end
+
 ylabel('Objective Type 1 AUC');
 xlabel('Eccentricity (dva)');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
 ylim([0.4 1]);
-hold on
-errorbar(-5,mean(grandmatrix(:,2)),std(grandmatrix(:,2))/sqrt(num_sub),'d','MarkerSize',6,...
-    'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix4),within_se(matrix4,num_sub,3),'d-','MarkerSize',6,...
-    'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix5),within_se(matrix5,num_sub,3),'d--','MarkerSize',6,...
-    'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-plot([-7 11],[0.5 0.5],'k--');
 title('original vs. modified','FontName','Arial');
-legend({'Congruent','Incongruent'},'Box','off');
-hold off
+
 
 %% hypothesis 1 type 2 AUC
 
@@ -371,31 +408,45 @@ for a = 1:3
 end
 
 % final_AUC = round(final_AUC,2);
-se7 = nanstd(mean(matrix6,2))/sqrt(num_sub);
-disp(se7)
+
+
 % AUC on each eccentricity levels
 AUC_ecc = reshape(nanmean(matrix6,1),[1,3]);
+
+if num_sub >= 3
 se4 = within_se(matrix6,num_sub,3);
+se7 = nanstd(mean(matrix6,2))/sqrt(num_sub);
+end
 
 figure(out);
-subplot(2,2,3),errorbar(-5,nanmean(nanmean(matrix6)),se7,'.','MarkerSize',14,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
+if num_sub<3
+    
+    subplot(2,2,3),plot(-5,nanmean(nanmean(matrix6)),'.','MarkerSize',14,...
+    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+    hold on
+    plot([0 6.5 9.2],AUC_ecc,'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    hold off
+
+else
+    subplot(2,2,3),errorbar(-5,nanmean(nanmean(matrix6)),se7,'.','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
+    hold on
+    errorbar([0 6.5 9.2],AUC_ecc,se4,'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
+    plot([-7 11],[0.5 0.5],'k--');
+    hold off
+
+end
+
 ylabel('Subjective Type 2 AUC');
-
-
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
 ylim([0.4 0.8]);
 xlabel('Eccentricity (dva)');
-
-legend('off');
-hold on
-errorbar([0 6.5 9.2],AUC_ecc,se4,'.-','MarkerSize',14,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-plot([-7 11],[0.5 0.5],'k--');
-hold off
 title('present vs. null','FontName','Arial');
-
+legend('off');
 clear Confidence_Correct
 clear Confidence_Incorrect
 
@@ -561,24 +612,43 @@ clear AUC;
 end
 
 figure(out);
-subplot(2,2,4),d = errorbar(-5,mean(matrix7(:,1)),std(matrix7(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
-    'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+disp(matrix0)
+
+if num_sub < 3
+    subplot(2,2,4),plot(-5,mean(matrix7(:,1)),'d','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    legend('off');
+    hold on
+    plot(-5,mean(matrix7(:,2)),'d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([0 6.5 9.2],nanmean(matrix9,1),'-d','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([0 6.5 9.2],nanmean(matrix0,1),'--d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    legend({'Congruent','Incongruent'},'Box','off');
+    hold off
+else
+    subplot(2,2,4),errorbar(-5,mean(matrix7(:,1)),std(matrix7(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    legend('off');
+    hold on
+    errorbar(-5,mean(matrix7(:,2)),std(matrix7(:,2))/sqrt(15),'d','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    errorbar([0 6.5 9.2],nanmean(matrix9),within_se(matrix9,num_sub,3),'d-','MarkerSize',6,...
+        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    errorbar([0 6.5 9.2],nanmean(matrix0),within_se(matrix0,num_sub,3),'d--','MarkerSize',6,...
+        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    plot([-7 11],[0.5 0.5],'k--');
+    legend({'Congruent','Incongruent'},'Box','off');
+    hold off
+end
+
+title('original vs. modified','FontName','Arial');
 ylabel('Subjective Type 2 AUC');
 xlabel('Eccentricity (dva)');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
 ylim([0.4 0.8]);
-legend('off');
-hold on
-errorbar(-5,mean(matrix7(:,2)),std(matrix7(:,2))/sqrt(15),'d','MarkerSize',6,...
-    'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix9),within_se(matrix9,num_sub,3),'d-','MarkerSize',6,...
-    'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix0),within_se(matrix0,num_sub,3),'d--','MarkerSize',6,...
-    'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-plot([-7 11],[0.5 0.5],'k--');
-title('original vs. modified','FontName','Arial');
-legend({'Congruent','Incongruent'},'Box','off');
-hold off
 
 end
