@@ -1,5 +1,6 @@
 %% manuscript first draft analysis
-Results = importdata('OnlinePilotData.mat');
+
+Results = data;
 
 location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.5;
 location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
@@ -45,11 +46,11 @@ Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
 
 %% hypothesis 1 AUC
 
-Results_NC = Results(Find_N,:); % find absent patchese
+Results_NC = Results(Find_N,:); % find absent patches
 Results_APC = Results(Find_IAP|Find_CAP,:); % find present patches
 matrix1 = zeros(15,1);
 
-for sub = 1:15 
+for sub = 1:num_sub 
     Results_NC = Results(Find_N,:);
     Confidence_N = Results_NC(Results_NC(:,1)==sub,9);
     Confidence_AP = Results_APC(Results_APC(:,1)==sub,9);
@@ -81,12 +82,12 @@ for sub = 1:15
 
 end
 
-se1 = std(matrix1)/sqrt(15);
+se1 = std(matrix1)/sqrt(num_sub);
 
 % AUC across eccentricities
 
-matrix3 = zeros(15, 3);
-for sub = 1:15
+matrix3 = zeros(num_sub, 3);
+for sub = 1:num_sub
     indvN = Results(Results(:,1)==sub & Find_N,:);
     indvP = Results(Results(:,1)==sub & (Find_CAP|Find_IAP),:); % trial classification
 for a = 1:3
@@ -131,10 +132,10 @@ clear AUC;
 end
 end
 
-se2 = within_se(matrix3,15,3);
+se2 = within_se(matrix3,num_sub,3);
 
 % plot graph
-
+out = figure;
 subplot(2,2,1),errorbar(-5,mean(matrix1),se1,'.','MarkerSize',12,...
     'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
 ylabel('Objective Type 1 AUC');
@@ -150,12 +151,12 @@ plot([-7 11],[0.5 0.5],'k--');
 hold off
 title('present vs. null','FontName','Arial');
 
-grandmatrix = zeros(15,2);
+grandmatrix = zeros(num_sub,2);
 
 %% hypothesis 2 AUC
 for condition = 1:2
     
-    for sub = 1:15
+    for sub = 1:num_sub
     if condition ==1
         Confidence_P = Results(Find_Congruent_CP & Results(:,1)==sub,9);
         Confidence_A = Results(Find_Congruent_IP & Results(:,1)==sub,9);
@@ -203,9 +204,9 @@ end
 
 %congruent
 
-matrix4 = zeros(15, 3);
+matrix4 = zeros(num_sub, 3);
 location = [0 6.5 9.2];
-for sub = 1:15
+for sub = 1:num_sub
     indvN = Results(Results(:,1)==sub & Find_Congruent_IP,:);
     indvP = Results(Results(:,1)==sub & Find_Congruent_CP,:); % trial classification
 for a = 1:3
@@ -261,9 +262,9 @@ clear population_m
 clear indv_mean
 clear indv_dff
 
-matrix5 = zeros(15, 3);
+matrix5 = zeros(num_sub, 3);
 
-for sub = 1:15
+for sub = 1:num_sub
     indvN = Results(Results(:,1)==sub & Find_Incongruent_CP,:);
     indvP = Results(Results(:,1)==sub & Find_Incongruent_IP,:); % trial classification
 for a = 1:3
@@ -318,8 +319,8 @@ end
 [h5,p5,CI,stats] = ttest(matrix5(:,2),0.5,'alpha',0.05/3)
 [h6,p6,CI,stats] = ttest(matrix5(:,3),0.5,'alpha',0.05/3)
 
-
-subplot(2,2,2),d = errorbar(-5,mean(grandmatrix(:,1)),std(grandmatrix(:,1))/sqrt(15),'d','MarkerSize',6,...
+figure(out);
+subplot(2,2,2),d = errorbar(-5,mean(grandmatrix(:,1)),std(grandmatrix(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
     'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
 ylabel('Objective Type 1 AUC');
 xlabel('Eccentricity (dva)');
@@ -327,11 +328,11 @@ xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','0','6.5','9.2'},'FontSize',12);
 ylim([0.4 1]);
 hold on
-errorbar(-5,mean(grandmatrix(:,2)),std(grandmatrix(:,2))/sqrt(15),'d','MarkerSize',6,...
+errorbar(-5,mean(grandmatrix(:,2)),std(grandmatrix(:,2))/sqrt(num_sub),'d','MarkerSize',6,...
     'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix4),within_se(matrix4,15,3),'d-','MarkerSize',6,...
+errorbar([0 6.5 9.2],nanmean(matrix4),within_se(matrix4,num_sub,3),'d-','MarkerSize',6,...
     'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-errorbar([0 6.5 9.2],nanmean(matrix5),within_se(matrix5,15,3),'d--','MarkerSize',6,...
+errorbar([0 6.5 9.2],nanmean(matrix5),within_se(matrix5,num_sub,3),'d--','MarkerSize',6,...
     'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
 plot([-7 11],[0.5 0.5],'k--');
 title('original vs. modified','FontName','Arial');
@@ -342,11 +343,11 @@ hold off
 
 
 %% hypothesis 2 hit and FA
-    matrix1 = zeros(15,3,2);
+    matrix1 = zeros(num_sub,3,2);
     location = [0 6.5 9.2];
 
     for loc = 1:3
-    for sub = 1:15
+    for sub = 1:num_sub
         R_indv = Results(Results(:,1)==sub &(Find_Congruent_CP |Find_Congruent_IP)& Results(:,end)==location(loc),:);
 
     for condition = 1:2
@@ -371,10 +372,10 @@ hold off
     end
 
     %incongruent --------------------------------------------------------------------------------
-     matrix2 = zeros(15,3,2);
+     matrix2 = zeros(num_sub,3,2);
 
     for loc = 1:3
-    for sub = 1:15
+    for sub = 1:num_sub
         R_indv = Results(Results(:,1)==sub &(Find_Incongruent_CP|Find_Incongruent_IP)& Results(:,end)==location(loc),:);
 
     for condition = 1:2
@@ -403,8 +404,8 @@ hold off
 for condition = 1:2
     for loc = 1:3
         current_accuracy = matrix1(:,loc,condition);
-        patch_type = zeros(15,1) + condition;
-        eccentricity = zeros(15,1) + location(loc);
+        patch_type = zeros(num_sub,1) + condition;
+        eccentricity = zeros(num_sub,1) + location(loc);
         con_loc_matrix = [num current_accuracy eccentricity patch_type];
         
         if loc == 1
@@ -430,8 +431,8 @@ end
 for condition = 1:2
     for loc = 1:3
         current_accuracy = matrix2(:,loc,condition);
-        patch_type = zeros(15,1) + condition;
-        eccentricity = zeros(15,1) + location(loc);
+        patch_type = zeros(num_sub,1) + condition;
+        eccentricity = zeros(num_sub,1) + location(loc);
         con_loc_matrix = [num current_accuracy eccentricity patch_type];
         
         if loc == 1
@@ -484,11 +485,11 @@ Results_APC = Results(Find_IAP|Find_CAP,:); % all trials with present test probe
 Results_Correct = [Results_NC(Results_NC(:,8)==-1,:); Results_APC(Results_APC(:,8)==1,:)];
 Results_Incorrect = [Results_NC(Results_NC(:,8)==1,:); Results_APC(Results_APC(:,8)==-1,:)];
 
-matrix6 = zeros(15,3);
+matrix6 = zeros(num_sub,3);
 
 
 for a = 1:3
-    for sub = 1:15 
+    for sub = 1:num_sub 
 
     Confidence_Incorrect = Results_Incorrect(Results_Incorrect(:,1)==sub & Results_Incorrect(:,13)==location(a),9);
     Confidence_Correct = Results_Correct(Results_Correct(:,1)==sub& Results_Correct(:,13)==location(a),9);
@@ -531,11 +532,11 @@ end
 
 
 % final_AUC = round(final_AUC,2);
-se7 = std(mean(matrix6,2))/sqrt(15);
+se7 = std(mean(matrix6,2))/sqrt(num_sub);
 
 % AUC on each eccentricity levels
 AUC_ecc = reshape(mean(matrix6,1),[1,3]);
-se4 = within_se(matrix6,15,3);
+se4 = within_se(matrix6,num_sub,3);
 
 % t test
 [h,p,CI,stats] = ttest(mean(matrix6,2),0.5)
@@ -545,11 +546,11 @@ se4 = within_se(matrix6,15,3);
 
 % lme model
 
-for i = 1:15
+for i = 1:num_sub
     num(i,1) = i;
 end
 sub_num = [num; num; num];
-location_num = [zeros(15,1); zeros(15,1)+6.5; zeros(15,1)+ 9.2];
+location_num = [zeros(num_sub,1); zeros(num_sub,1)+6.5; zeros(num_sub,1)+ 9.2];
 AUC_lme = [matrix6(:,1);matrix6(:,2);matrix6(:,3)];
 data1 = table(sub_num,location_num,AUC_lme,'VariableNames',{'Subject','location','AUC'});
 
@@ -579,12 +580,12 @@ clear Confidence_Correct
 clear Confidence_Incorrect
 
 %% hypothesis 2 type 2 AUC 
-matrix7 = zeros(15,2);
+matrix7 = zeros(num_sub,2);
 
 
 for condition = 1:2
     
-    for sub = 1:15
+    for sub = 1:num_sub
     if condition ==1
         Results_N = Results(Find_Congruent_IP,:);
         Results_A = Results(Find_Congruent_CP,:);
@@ -639,11 +640,11 @@ end
 
 %congruent
 
-matrix9 = zeros(15, 3);
+matrix9 = zeros(num_sub, 3);
 location = [0 6.5 9.2];
 for condition = 1:3
     
-    for sub = 1:15
+    for sub = 1:num_sub
   
         Results_N = Results(Find_Congruent_IP & Results(:,end)== location(condition),:);
         Results_A = Results(Find_Congruent_CP & Results(:,end) == location(condition),:);
@@ -692,11 +693,11 @@ clear Results_N
 clear Results_A
 
 
-matrix0 = zeros(15, 3);
+matrix0 = zeros(num_sub, 3);
 
 for condition = 1:3
     
-    for sub = 1:15
+    for sub = 1:num_sub
   
         Results_N = Results(Find_Incongruent_CP & Results(:,end)== location(condition),:);
         Results_A = Results(Find_Incongruent_IP & Results(:,end) == location(condition),:);
@@ -760,8 +761,8 @@ matrix1(:,:,2) = matrix0;
 for condition = 1:2
     for loc = 1:3
         current_accuracy = matrix1(:,loc,condition);
-        patch_type = zeros(15,1) + condition;
-        eccentricity = zeros(15,1) + location(loc);
+        patch_type = zeros(num_sub,1) + condition;
+        eccentricity = zeros(num_sub,1) + location(loc);
         con_loc_matrix = [num current_accuracy eccentricity patch_type];
         
         if loc == 1
@@ -797,11 +798,11 @@ interaction_effect = compare(lme4,lme1)
 
 % lme models
 
-for i = 1:15
+for i = 1:num_sub
     num(i,1) = i;
 end
 sub_num = [num; num; num];
-location_num = [zeros(15,1); zeros(15,1)+6.5; zeros(15,1)+ 9.2];
+location_num = [zeros(num_sub,1); zeros(num_sub,1)+6.5; zeros(num_sub,1)+ 9.2];
 %congruent
 AUC_lme1 = [matrix9(:,1);matrix9(:,2);matrix9(:,3)];
 data2 = table(sub_num,location_num,AUC_lme1,'VariableNames',{'Subject','location','AUC'});
@@ -820,7 +821,7 @@ compare(lm5,lm4)
 
 
 % 
-% subplot(2,2,4),d = errorbar(-5,mean(matrix7(:,1)),std(matrix7(:,1))/sqrt(15),'d','MarkerSize',6,...
+% subplot(2,2,4),d = errorbar(-5,mean(matrix7(:,1)),std(matrix7(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
 %     'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
 % ylabel('Subjective Type 2 AUC');
 % xlabel('Eccentricity (dva)');

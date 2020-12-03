@@ -1,5 +1,6 @@
 %%% this function produces Type 1 and Type 2 AUC results for Qianchen's experiment. data =
 %%% data matrix, num_sub = number of subjects in the data matrix.
+%%% for this function to work, please make sure to install PsychToolbox (http://psychtoolbox.org/)
 
 
 function [out] = AUC_figures(data,num_sub)
@@ -14,6 +15,8 @@ Results = [Results eccentricity];
 location = [0 6.5 9.2];
 
 colours = cbrewer('qual','Set1',8);
+
+subject_id = unique(Results(:,1));
 
 Results(:,9) = Results(:,8).*Results(:,9);
 Find_N = Results(:,5) ==1;
@@ -41,8 +44,8 @@ matrix1 = zeros(num_sub,1);
 
 for sub = 1:num_sub 
     Results_NC = Results(Find_N,:);
-    Confidence_N = Results_NC(Results_NC(:,1)==sub,9);
-    Confidence_AP = Results_APC(Results_APC(:,1)==sub,9);
+    Confidence_N = Results_NC(Results_NC(:,1)==subject_id(sub),9);
+    Confidence_AP = Results_APC(Results_APC(:,1)==subject_id(sub),9);
     
     for i = -4:4
         Confidence_APCounts(i+5) = sum(Confidence_AP == -i);
@@ -78,8 +81,8 @@ end
 
 matrix3 = zeros(num_sub, 3);
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==sub & Find_N,:);
-    indvP = Results(Results(:,1)==sub & (Find_CAP|Find_IAP),:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_N,:);
+    indvP = Results(Results(:,1)==subject_id(sub) & (Find_CAP|Find_IAP),:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,end)== location(a),:); % select trials on that location
@@ -164,11 +167,11 @@ for condition = 1:2
     
     for sub = 1:num_sub
     if condition ==1
-        Confidence_P = Results(Find_Congruent_CP & Results(:,1)==sub,9);
-        Confidence_A = Results(Find_Congruent_IP & Results(:,1)==sub,9);
+        Confidence_P = Results(Find_Congruent_CP & Results(:,1)==subject_id(sub),9);
+        Confidence_A = Results(Find_Congruent_IP & Results(:,1)==subject_id(sub),9);
     else
-        Confidence_P = Results(Find_Incongruent_IP & Results(:,1)==sub,9);
-        Confidence_A = Results(Find_Incongruent_CP & Results(:,1)==sub,9);
+        Confidence_P = Results(Find_Incongruent_IP & Results(:,1)==subject_id(sub),9);
+        Confidence_A = Results(Find_Incongruent_CP & Results(:,1)==subject_id(sub),9);
     end
 
 for i = -4:4
@@ -213,8 +216,8 @@ end
 matrix4 = zeros(num_sub, 3);
 location = [0 6.5 9.2];
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==sub & Find_Congruent_IP,:);
-    indvP = Results(Results(:,1)==sub & Find_Congruent_CP,:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_Congruent_IP,:);
+    indvP = Results(Results(:,1)==subject_id(sub) & Find_Congruent_CP,:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,end)== location(a),:); % select trials on that location
@@ -271,8 +274,8 @@ clear indv_dff
 matrix5 = zeros(num_sub, 3);
 
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==sub & Find_Incongruent_CP,:);
-    indvP = Results(Results(:,1)==sub & Find_Incongruent_IP,:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_CP,:);
+    indvP = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_IP,:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,end)== location(a),:); % select trials on that location
@@ -369,8 +372,8 @@ matrix6 = zeros(num_sub,3);
 for a = 1:3
     for sub = 1:num_sub 
 
-    Confidence_Incorrect = Results_Incorrect(Results_Incorrect(:,1)==sub & Results_Incorrect(:,end)==location(a),9);
-    Confidence_Correct = Results_Correct(Results_Correct(:,1)==sub& Results_Correct(:,end)==location(a),9);
+    Confidence_Incorrect = Results_Incorrect(Results_Incorrect(:,1)==subject_id(sub) & Results_Incorrect(:,end)==location(a),9);
+    Confidence_Correct = Results_Correct(Results_Correct(:,1)==subject_id(sub)& Results_Correct(:,end)==location(a),9);
 %     Confidence_Incorrect = Results_Incorrect(:,9);
 %     Confidence_Correct = Results_Correct(:,9);
     
@@ -460,13 +463,13 @@ for condition = 1:2
     if condition ==1
         Results_N = Results(Find_Congruent_IP,:);
         Results_A = Results(Find_Congruent_CP,:);
-        Confidence_Correct = [Results_N(Results_N(:,1)== sub & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==1,9)];
-        Confidence_Incorrect = [Results_N(Results_N(:,1)== sub &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==-1,9)];
+        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
+        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
     else
         Results_N = Results(Find_Incongruent_CP,:);
         Results_A = Results(Find_Incongruent_IP,:);
-        Confidence_Correct = [Results_N(Results_N(:,1)== sub &Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==1,9)];
-        Confidence_Incorrect = [Results_N(Results_N(:,1)== sub &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==-1,9)];
+        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
+        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
     end
 
    for i = -4:-1
@@ -519,8 +522,8 @@ for condition = 1:3
   
         Results_N = Results(Find_Congruent_IP & Results(:,end)== location(condition),:);
         Results_A = Results(Find_Congruent_CP & Results(:,end) == location(condition),:);
-        Confidence_Correct = [Results_N(Results_N(:,1)== sub & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==1,9)];
-        Confidence_Incorrect = [Results_N(Results_N(:,1)== sub &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==-1,9)];
+        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
+        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
  
 
    for i = -4:-1
@@ -572,8 +575,8 @@ for condition = 1:3
   
         Results_N = Results(Find_Incongruent_CP & Results(:,end)== location(condition),:);
         Results_A = Results(Find_Incongruent_IP & Results(:,end) == location(condition),:);
-        Confidence_Correct = [Results_N(Results_N(:,1)== sub & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==1,9)];
-        Confidence_Incorrect = [Results_N(Results_N(:,1)== sub &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==sub & Results_A(:,8)==-1,9)];
+        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
+        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
  
 
    for i = -4:-1

@@ -1,6 +1,8 @@
 % this script runs the bootstrap analysis of null patch d x c vs modified
 % patch dxc, based on RGB, RGB, and RGB differences
 
+
+
 %% load data
 load('All absent decisions.mat');
 %% bootstrapping

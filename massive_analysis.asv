@@ -91,7 +91,7 @@ end
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),80);
 Y1_cumulative  = cumsum(Y1);
-subplot(2,1,1),plot(edges,[Y1_cumulative 80],'LineWidth',1.2,'Color',colours(2,:));
+subplot(2,1,1),plot(edges,[Y1_cumulative 80],'LineWidth',1.2,'Color',colours(2,:),'');
 hold on
 
 [Y2,edges] = histcounts(delta_2(:,1),80);
@@ -99,19 +99,18 @@ Y2_cumulative  = cumsum(Y2);
 plot(edges,[Y2_cumulative 80],'LineWidth',1.2,'Color',colours(1,:));
 
 hold off
-box off
 
-xlabel('?rcD×C (Original - Modified)'), ylabel('Cumulative counts');
+xlabel('Original DxC - Modified DxC'), ylabel('Cumulative counts');
 set(gca,'FontName','Arial','FontSize',12);
 xlim([-7 7]);
-legend({'Congruent','Incongruent'},'Box','off','Location','northwest');
+legend({'Congruent','Incongruent'},'Box','off');
 
 [Y3,edges] = histcounts(delta_3(:,1),80);
 Y3_cumulative  = cumsum(Y3);
-subplot(2,1,2),plot(edges,[Y3_cumulative 80],'LineWidth',1.2,'Color','magenta');
+subplot(2,1,2),plot(edges,[Y3_cumulative 80],'LineWidth',1.2,'Color','magenta','Box','off');
 
-xlabel('?rcD×C (Present - Null)'), ylabel('Cumulative counts');
+xlabel('Present DxC - Null DxC'), ylabel('Cumulative counts');
 set(gca,'FontName','Arial','FontSize',12);
 xlim([-7 7]);
-box off
+
 

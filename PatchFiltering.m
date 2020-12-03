@@ -21,7 +21,8 @@ select_num = [7 12 4 15 20] - 2;
 
 for img = 1:5
     % patch responses for current image
-    modified_data = data_allab(data_allab.Image == select_num(img) & data_allab.PatchType ~=0 & data_allab.Congruency == 0,:);
+    modified_data = data_allab(data_allab.Image == select_num(img) & data_allab.PatchType ~=0 &...
+        data_allab.Congruency == 0,:);
     null_data = data_allab(data_allab.Image == select_num(img) & data_allab.PatchType ==0 & data_allab.Congruency == 0 & ...
         data_allab.AbsentLoc == unique(modified_data.AbsentLoc) & data_allab.Decision == 3.5,:);
     

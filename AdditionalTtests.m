@@ -1,8 +1,7 @@
 % additional anova and t-tests
 
 % load data and indexes
-clear all
-Results = importdata('Pooled Results.mat');
+Results = [b2_g1;b2_g2;b2_g3_5];
 Results(:,9) = Results(:,8).*Results(:,9);
 
 %Find trials that presented N patches -- signal absent for hypo 1
@@ -15,29 +14,31 @@ Find_IAP = Results(:,4) == 1 & Results(:,5) == 3;
 
 %Congruent trial with Congruent object, and incongruent trial with
 %incongruent object -- signal present for hypo 2
-Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 3;
-Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 3;
+Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1;
+Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 
 %Incongruent trial with congruent object, congruent trial with incongruent
 %object -- signal absent for hypo 2
 
-Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 3;
-Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 3;
+Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
+Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
+
+subject_id = unique(Results(:,1));
 
 
 %% hypohtesis 2, congruent
 
 for i = 1:9
    
-    for sub = 1:15
-        percentage_CP(sub,i) = size(Results(Results(:,1)== sub & Find_Congruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Congruent_CP,:));
-        percentage_CI(sub,i) = size(Results(Results(:,1)== sub &Find_Congruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Congruent_IP,:));
-        percentage_IP(sub,i) =  size(Results(Results(:,1)== sub &Find_Incongruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Incongruent_IP,:));
-        percentage_II(sub,i) =  size(Results(Results(:,1)== sub & Find_Incongruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Incongruent_CP,:));
+    for sub = 1:22
+        percentage_CP(sub,i) = size(Results(Results(:,1)== subject_id(sub) & Find_Congruent_CP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_id(sub) & Find_Congruent_CP,:));
+        percentage_CI(sub,i) = size(Results(Results(:,1)== subject_id(sub) &Find_Congruent_IP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_id(sub) & Find_Congruent_IP,:));
+        percentage_IP(sub,i) =  size(Results(Results(:,1)== subject_id(sub) &Find_Incongruent_IP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_id(sub) & Find_Incongruent_IP,:));
+        percentage_II(sub,i) =  size(Results(Results(:,1)== subject_id(sub) & Find_Incongruent_CP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_id(sub) & Find_Incongruent_CP,:));
     end
 end
 
@@ -59,7 +60,8 @@ for i = 1:8
     clear p1
     clear p1
 end
-
+disp(cong_hypo2_t)
+disp(incong_hypo2_t)
 %% on each eccentricity
 
 location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.5;
@@ -71,15 +73,15 @@ location = [0 6.5 9.2];
 for loc = 1:3
     
     for i = 1:9
-        for sub = 1:15
-        pcg_N_cong(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,1)==sub,:),1);
-        pcg_AP_cong(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,1)== sub,:),1);
-        pcg_N_incong(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,1)==sub,:),1);
-        pcg_AP_incong(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,1)== sub,:),1);
+        for sub = 1:22
+        pcg_N_cong(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== subject_id(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,1)==subject_id(sub),:),1);
+        pcg_AP_cong(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== subject_id(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,1)== subject_id(sub),:),1);
+        pcg_N_incong(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== subject_id(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,1)==subject_id(sub),:),1);
+        pcg_AP_incong(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== subject_id(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,1)== subject_id(sub),:),1);
         end
     end
     
@@ -107,5 +109,7 @@ for loc = 1:3
 
 end
 
+disp(cong_ecc_t)
+disp(incong_ecc_t)
 
 

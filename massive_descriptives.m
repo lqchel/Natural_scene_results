@@ -1,11 +1,10 @@
 %%% this function produces the descriptive statistics of Qianchen's Natural
 %%% scene patch experiment. for the figure produced, x axis is Decision x
 %%% confidence category (-4 to 4), and y axis is percentage of responses.
-%%% data = the data matrix, num_sub = number of subjects in the data file.
+%%% data = the data matrix, num_sub = number of participants.
 
 
 function [out] = massive_descriptives(data, num_sub)
-
 Results = data;
 Results(:,9) = Results(:,8).*Results(:,9);
 
@@ -31,9 +30,10 @@ Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
 %% hypothesis 1
 %proportion of responses
 pcgN_matrix = zeros(num_sub,9);
+subject_code = unique(Results(:,1));
 for sub = 1:num_sub
 for i = 1:9
-    pcgN_matrix(sub,i) = size(Results(Find_N & Results(:,9)== i-5 & Results(:,1)==sub,:),1)/length(Results(Find_N & Results(:,1)==sub,:));
+    pcgN_matrix(sub,i) = size(Results(Find_N & Results(:,9)== i-5 & Results(:,1)==subject_code(sub),:),1)/length(Results(Find_N & Results(:,1)==subject_code(sub),:));
 end
 end
 
@@ -51,8 +51,8 @@ pcgAP_matrix = zeros(num_sub,9);
 
 for sub = 1:num_sub
 for i = 1:9
-    pcgAP_matrix(sub,i) = size(Results((Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-        length(Results((Find_CAP|Find_IAP) & Results(:,1)== sub,:));
+    pcgAP_matrix(sub,i) = size(Results((Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+        length(Results((Find_CAP|Find_IAP) & Results(:,1)== subject_code(sub),:));
 end
 end
 pcgAP_matrix = [pcgAP_matrix(:,1:4) pcgAP_matrix(:,6:9)];
@@ -99,7 +99,7 @@ hold off
 end
 
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-ylim([0 0.7]);
+ylim([0 1]);
 xlim([0.5 8.5]);
 title('Across eccentricities','FontName','Arial');
 legend({'Present','Null'});
@@ -130,10 +130,10 @@ for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_N & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            length(Results(Results(:,end)==location(loc)&Find_N & Results(:,1)==sub,:));
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&(Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            length(Results(Results(:,end)==location(loc)&(Find_CAP|Find_IAP) & Results(:,1)== sub,:));
+        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_N & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            length(Results(Results(:,end)==location(loc)&Find_N & Results(:,1)==subject_code(sub),:));
+        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&(Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            length(Results(Results(:,end)==location(loc)&(Find_CAP|Find_IAP) & Results(:,1)== subject_code(sub),:));
         end
     end
 
@@ -179,7 +179,7 @@ else
 end
 
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-ylim([0 0.7]);
+ylim([0 1]);
 xlim([0.5 8.5]);
 
 if loc ~= 1
@@ -215,14 +215,14 @@ end
 for i = 1:9
    
     for sub = 1:num_sub
-        percentage_CP(sub,i) = size(Results(Results(:,1)== sub & Find_Congruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Congruent_CP,:));
-        percentage_CI(sub,i) = size(Results(Results(:,1)== sub &Find_Congruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Congruent_IP,:));
-        percentage_IP(sub,i) =  size(Results(Results(:,1)== sub &Find_Incongruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Incongruent_IP,:));
-        percentage_II(sub,i) =  size(Results(Results(:,1)== sub & Find_Incongruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== sub & Find_Incongruent_CP,:));
+        percentage_CP(sub,i) = size(Results(Results(:,1)== subject_code(sub) & Find_Congruent_CP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_code(sub) & Find_Congruent_CP,:));
+        percentage_CI(sub,i) = size(Results(Results(:,1)== subject_code(sub) &Find_Congruent_IP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_code(sub) & Find_Congruent_IP,:));
+        percentage_IP(sub,i) =  size(Results(Results(:,1)== subject_code(sub) &Find_Incongruent_IP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_IP,:));
+        percentage_II(sub,i) =  size(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_CP & Results(:,9)== i-5,:),1)/...
+            length(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_CP,:));
     end
 end
 
@@ -269,7 +269,7 @@ if num_sub <3
     plot(1:8,percentage_CI,'.-','MarkerSize',12,'Color',colours(1,:),'MarkerFaceColor',colours(1,:),'MarkerEdgeColor',colours(1,:),...
         'LineWidth',1);
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-    xlim([0.5 8.5]),ylim([0 0.7]);
+    xlim([0.5 8.5]),ylim([0 1]);
     hold off
     legend({'Congruent original','Congruent modified'});
 
@@ -277,7 +277,7 @@ if num_sub <3
     hold on
     plot(1:8,percentage_II,'.--','MarkerSize',12,'Color',colours(1,:),'MarkerEdgeColor',colours(1,:),'LineWidth',1.2);
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-    xlim([0.5 8.5]),ylim([0 0.7]);
+    xlim([0.5 8.5]),ylim([0 1]);
     hold off
     legend({'Incongruent original','Incongruent modified'});
 else
@@ -288,7 +288,7 @@ else
     errorbar(1:8,percentage_CI,se_CI,'.-','MarkerSize',12,'Color',colours(1,:),'MarkerFaceColor',colours(1,:),'MarkerEdgeColor',colours(1,:),...
         'LineWidth',1);
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-    xlim([0.5 8.5]),ylim([0 0.7]);
+    xlim([0.5 8.5]),ylim([0 1]);
     hold off
     legend({'Congruent original','Congruent modified'});
     
@@ -296,7 +296,7 @@ else
     hold on
     errorbar(1:8,percentage_II,se_II,'.--','MarkerSize',12,'Color',colours(1,:),'MarkerEdgeColor',colours(1,:),'LineWidth',1.2);
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-    xlim([0.5 8.5]),ylim([0 0.7]);
+    xlim([0.5 8.5]),ylim([0 1]);
     hold off
     legend({'Incongruent original','Incongruent modified'});
 
@@ -337,10 +337,10 @@ for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,1)==sub,:),1);
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,1)== sub,:),1);
+        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,1)==subject_code(sub),:),1);
+        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,1)== subject_code(sub),:),1);
         end
     end
     
@@ -386,15 +386,20 @@ else
 
 end
 
+
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-ylim([0 0.7]),xlim([0.5 8.5]);
+ylim([0 1]),xlim([0.5 8.5]);
+
+if loc > 1
+    yticks([]);
+end
 hold off
 % 
 % subplot(3,4,loc+5),b = bar(m_All,'grouped','BarWidth',1);
 % set(gca,'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial');
 % b(1).FaceColor = colours(2,:);
 % b(2).FaceColor = colours(1,:);
-% ylim([0 0.9]);
+% ylim([0 1]);
 % 
 % if loc ~= 1
 %     yticks([]);
@@ -418,10 +423,10 @@ for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,1)==sub,:),1);
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== sub,:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,1)== sub,:),1);
+        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,1)==subject_code(sub),:),1);
+        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,1)== subject_code(sub),:),1);
         end
     end
     
@@ -456,9 +461,11 @@ else
 end
 
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
-ylim([0 0.7]),xlim([0.5 8.5]);
+ylim([0 1]),xlim([0.5 8.5]);
 
-
+if loc ~= 1
+    yticks([]);
+end
 
 
 % 
@@ -479,7 +486,7 @@ ylim([0 0.7]),xlim([0.5 8.5]);
 % b(2).EdgeColor = colours(1,:);
 % b(1).FaceColor = 'white';
 % b(2).FaceColor = 'white';
-% ylim([0 0.9]);
+% ylim([0 1]);
 %     
 % if loc ~= 1
 %     yticks([]);
