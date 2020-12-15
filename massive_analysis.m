@@ -48,13 +48,14 @@ for img = 3:82
 end
 
 [delta_1_x,rank1] = sort(delta_1(:,1),'descend');
-[delta_2_x,rank2] = sort(delta_2(:,1),'descend');
+% [delta_2_x,rank2] = sort(delta_2(:,1),'descend');
+
 
 delta_1_x = [delta_1_x delta_1(rank1,2) delta_1(rank1,3)];
-delta_2_x = [delta_2_x delta_2(rank2,2) delta_2(rank2,3)];
+delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3)];
 
 delta_1_x = [delta_1_x(:,1:3) c(rank1,1)];
-delta_2_x = [delta_2_x(:,1:3) in(rank2,1)];
+delta_2_x = [delta_2_x(:,1:3) in(rank1,1)];
 %% plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),80);
@@ -83,99 +84,85 @@ filePattern2 = fullfile(folder2,'*.jpg');
 theFiles1 = dir(filePattern1);
 theFiles2 = dir(filePattern2);
 
-top = 1:3;
-mid_1 = 47:50;
-mid_2 = 97:100;
-bottom = 147:150;
 
 % display (axis definition [left bottom width height])
 
 %congruent
-for i = 1:1
+for i = 1:16
 for p = 1:5
     current_cong= imresize(imread(fullfile(folder1,theFiles1(delta_1_x((i-1).*5+p,2)).name)),[150 150]);
-    if delta_1_x((i-1).*5+p,4) == 1
-        current_cong([top mid_1],[top mid_1],1) = uint8(255);
-        current_cong([top mid_1],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 2
-        current_cong([top mid_1],[mid_1 mid_2],1) = uint8(255);
-        current_cong([top mid_1],[mid_1 mid_2],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 3
-        current_cong([top mid_1],[mid_2 bottom],1) = uint8(255);
-        current_cong([top mid_1],[mid_1 bottom],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 4
-        current_cong([mid_1 mid_2],[top mid_1],1) = uint8(255);
-        current_cong([mid_1 mid_2],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 5
-        current_cong([mid_1 mid_2],[mid_1 mid_2],1) = uint8(255);
-        current_cong([mid_1 mid_2],[mid_1 mid_2],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 6
-        current_cong([mid_1 mid_2],[mid_2 bottom],1) = uint8(255);
-        current_cong([mid_1 mid_2],[mid_2 bottom],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 7
-        current_cong([mid_2 bottom],[top mid_1],1) = uint8(255);
-        current_cong([mid_2 bottom],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 8
-        current_cong([mid_2 bottom],[mid_1 mid_2],1) = uint8(255);
-        current_cong([mid_2 bottom],[mid_1 mid_2],2:3) = uint8(0);
-    else
-        current_cong([mid_2 bottom],[mid_2 bottom],1) = uint8(255);
-        current_cong([mid_2 bottom],[mid_2 bottom],2:3) = uint8(0);
-    end
-    
     ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]);
     image(ax1,current_cong);
+    
+    % mark out the critical objects
+    hold on
+    if delta_1_x((i-1).*5+p,4) == 1
+        plot(ax1,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 2
+        plot(ax1,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 3
+        plot(ax1,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 4
+        plot(ax1,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 5
+        plot(ax1,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 6
+        plot(ax1,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 7
+        plot(ax1,[1 50 50 1 0],[150 150 100 100 150],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 8
+        plot(ax1,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
+    else
+        plot(ax1,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
+    end
+    hold off
     axis square
-    title({['\delta = ', num2str(delta_1_x((i-1).*5 + p,1)), ', ', num2str(delta_1_x((i-1).*5 + p,3)), ' dva']});
+    title({['\delta','cong = ', num2str(delta_1_x((i-1).*5 + p,1))], ['\delta','incong = ', num2str(delta_2_x((i-1).*5 + p,1))]});
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
+    
     
     current_incong= imresize(imread(fullfile(folder2,theFiles2(delta_1_x((i-1).*5+p,2)).name)),[150 150]);
-    
-    if delta_1_x((i-1).*5+p,4) == 1
-        current_cong([top mid_1],[top mid_1],1) = uint8(255);
-        current_cong([top mid_1],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 2
-        current_cong([top mid_1],[mid_1 mid_2],1) = uint8(255);
-        current_cong([top mid_1],[mid_1 mid_2],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 3
-        current_cong([top mid_1],[mid_2 bottom],1) = uint8(255);
-        current_cong([top mid_1],[mid_1 bottom],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 4
-        current_cong([mid_1 mid_2],[top mid_1],1) = uint8(255);
-        current_cong([mid_1 mid_2],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 5
-        current_cong([mid_1 mid_2],[mid_1 mid_2],1) = uint8(255);
-        current_cong([mid_1 mid_2],[mid_1 mid_2],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 6
-        current_cong([mid_1 mid_2],[mid_2 bottom],1) = uint8(255);
-        current_cong([mid_1 mid_2],[mid_2 bottom],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 7
-        current_cong([mid_2 bottom],[top mid_1],1) = uint8(255);
-        current_cong([mid_2 bottom],[top mid_1],2:3) = uint8(0);
-    elseif delta_1_x((i-1).*5+p,4) == 8
-        current_cong([mid_2 bottom],[mid_1 mid_2],1) = uint8(255);
-        current_cong([mid_2 bottom],[mid_1 mid_2],2:3) = uint8(0);
-    else
-        current_cong([mid_2 bottom],[mid_2 bottom],1) = uint8(255);
-        current_cong([mid_2 bottom],[mid_2 bottom],2:3) = uint8(0);
-    end
     ax2= axes('Position',[0.015+(p-1).*0.19 0.3 0.2 0.2]);
     image(ax2,current_incong);
+    
+    % mark out the critical objects
+    hold on
+    if delta_1_x((i-1).*5+p,4) == 1
+        plot(ax2,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 2
+        plot(ax2,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 3
+        plot(ax2,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 4
+        plot(ax2,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 5
+        plot(ax2,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 6
+        plot(ax2,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 7
+        plot(ax2,[1 50 50 1 1],[150 150 100 100 150],'r-','LineWidth',1.2);
+    elseif delta_1_x((i-1).*5+p,4) == 8
+        plot(ax2,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
+    else
+        plot(ax2,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
+    end
+    hold off
     axis square
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
 
 end
 
-%     if i < 10
-%         filename = ['cong_0', num2str(i),'.jpg'];
-%     else
-%         filename = ['cong_', num2str(i), '.jpg'];
-%     end
-%     saveas(gcf,filename);
-    clf;
+    if i < 10
+        filename = ['cong_0', num2str(i),'.jpg'];
+    else
+        filename = ['cong_', num2str(i), '.jpg'];
+    end
+    saveas(gcf,filename);
+clf;
 end
+
 
 %%
 %incongruent
