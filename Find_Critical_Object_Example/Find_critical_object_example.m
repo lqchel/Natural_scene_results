@@ -1,3 +1,6 @@
+%%%% This code finds and cuts the smallest rectangle area for the critical
+%%%% objects in the sample congruent and incongruent image pairs.
+
 % load image
 cong = imread('SquareCongruent_002.jpg');
 incong = imread('SquareIncongruent_002.jpg');
