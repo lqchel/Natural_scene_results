@@ -26,24 +26,39 @@ location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8
 location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
 eccentricity = zeros(length(Results),1)+ location1 + location2;
 
+% load image list
+folder1 = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\squareimage\congruent cropped'; 
+folder2 = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\squareimage\incongruent cropped';
+filePattern1 = fullfile(folder1,'*.jpg');
+filePattern2 = fullfile(folder2,'*.jpg');
+theFiles1 = dir(filePattern1);
+theFiles2 = dir(filePattern2);
+
+
 
 %% original vs. modified
 
 %congruent
 delta_1 = zeros(80,3);
+size = zeros(80,1);
 for img = 3:82
+    current_cong= imread(fullfile(folder1,theFiles1(img-2).name));
+    current_incong= imread(fullfile(folder2,theFiles2(img-2).name));
     delta_1(img-2,1) = median(Results(Results(:,2)==img & Find_Congruent_CP,9)-Results(Results(:,2)==img & Find_Congruent_IP,9));
     delta_1(img-2,2) = img;
     delta_1(img-2,3) = unique(eccentricity(Results(:,2)==img & Find_Congruent_CP,1));
+    size(img-2,1) = sum(sum(sum(current_cong-current_incong)))/(440^2);
     c(img-2,1) = unique(Results(Results(:,2)==img & Find_Congruent_CP,7));
 end
 
 %incongruent
 delta_2 = zeros(80,3);
+condition_diff = zeros(80,1);
 for img = 3:82
     delta_2(img-2,1) = median(Results(Results(:,2)==img & Find_Incongruent_IP,9)-Results(Results(:,2)==img & Find_Incongruent_CP,9));
     delta_2(img-2,2) = img;
     delta_2(img-2,3) = unique(eccentricity(Results(:,2)==img & Find_Incongruent_IP,1));
+    condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
     in(img-2,1) = unique(Results(Results(:,2)==img & Find_Incongruent_IP,7));
 end
 
@@ -60,17 +75,16 @@ delta_2_x = [delta_2_x(:,1:3) in(rank1,1)];
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),80);
 Y1_cumulative  = cumsum(Y1);
-subplot(2,1,1),plot(edges,[Y1_cumulative 80],'LineWidth',1.2,'Color',colours(2,:));
-hold on
+plot(edges,[Y1_cumulative 80],'LineWidth',1.2,'Color',colours(2,:));
 
+hold on
 [Y2,edges] = histcounts(delta_2(:,1),80);
 Y2_cumulative  = cumsum(Y2);
 plot(edges,[Y2_cumulative 80],'LineWidth',1.2,'Color',colours(1,:));
-
 hold off
 box off
 
-xlabel('?rcD×C (Original - Modified)'), ylabel('Cumulative counts');
+xlabel(['Delta','rcD×C (Original - Modified)']), ylabel('Cumulative counts');
 set(gca,'FontName','Arial','FontSize',12);
 xlim([-7 7]);
 legend({'Congruent','Incongruent'},'Box','off','Location','northwest');
@@ -117,7 +131,7 @@ for p = 1:5
     end
     hold off
     axis square
-    title({['\delta','cong = ', num2str(delta_1_x((i-1).*5 + p,1))], ['\delta','incong = ', num2str(delta_2_x((i-1).*5 + p,1))]});
+    title({['\Delta','cong = ', num2str(delta_1_x((i-1).*5 + p,1))], ['\Delta','incong = ', num2str(delta_2_x((i-1).*5 + p,1))]});
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
     
