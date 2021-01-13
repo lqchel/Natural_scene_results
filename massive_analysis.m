@@ -40,37 +40,55 @@ theFiles2 = dir(filePattern2);
 
 %congruent
 delta_1 = zeros(80,3);
-size = zeros(80,1);
+%size = zeros(80,1);
+cong_significance = zeros(80,1);
 for img = 3:82
-    current_cong= imread(fullfile(folder1,theFiles1(img-2).name));
-    current_incong= imread(fullfile(folder2,theFiles2(img-2).name));
-    delta_1(img-2,1) = median(Results(Results(:,2)==img & Find_Congruent_CP,9)-Results(Results(:,2)==img & Find_Congruent_IP,9));
+%     current_cong= imread(fullfile(folder1,theFiles1(img-2).name));
+%     current_incong= imread(fullfile(folder2,theFiles2(img-2).name));
+    temp = Results(Results(:,2)==img & Find_Congruent_CP,9)-Results(Results(:,2)==img & Find_Congruent_IP,9);
+    delta_1(img-2,1) = mean(temp);
     delta_1(img-2,2) = img;
-    delta_1(img-2,3) = unique(eccentricity(Results(:,2)==img & Find_Congruent_CP,1));
-    size(img-2,1) = sum(sum(sum(current_cong-current_incong)))/(440^2);
-    c(img-2,1) = unique(Results(Results(:,2)==img & Find_Congruent_CP,7));
+    %delta_1(img-2,3) = unique(eccentricity(Results(:,2)==img & Find_Congruent_CP,1));
+    delta_1(img-2,3) = sum(Results(:,2)==img & Find_Congruent_CP);
+    [h,delta_1(img-2,4)] = ttest(temp,0); 
+%     if img == 66
+%     disp(Results(Results(:,2)==img & Find_Congruent_CP,9)-Results(Results(:,2)==img & Find_Congruent_IP,9));
+%     break
+%     end
+    %size(img-2,1) = sum(sum(sum(current_cong-current_incong)))/(440^2);
+     c(img-2,1) = unique(Results(Results(:,2)==img & Find_Congruent_CP,7));
+    clear temp
 end
 
 %incongruent
 delta_2 = zeros(80,3);
-condition_diff = zeros(80,1);
+%condition_diff = zeros(80,1);
+incong_significance = zeros(80,1);
 for img = 3:82
-    delta_2(img-2,1) = median(Results(Results(:,2)==img & Find_Incongruent_IP,9)-Results(Results(:,2)==img & Find_Incongruent_CP,9));
+    temp = Results(Results(:,2)==img & Find_Incongruent_IP,9)-Results(Results(:,2)==img & Find_Incongruent_CP,9);
+    delta_2(img-2,1) = mean(temp);
     delta_2(img-2,2) = img;
-    delta_2(img-2,3) = unique(eccentricity(Results(:,2)==img & Find_Incongruent_IP,1));
-    condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
+    delta_2(img-2,3) = sum(Results(:,2)==img & Find_Incongruent_IP);
+    %condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
+    [h,delta_2(img-2,4)] = ttest(temp,0);
     in(img-2,1) = unique(Results(Results(:,2)==img & Find_Incongruent_IP,7));
+    clear temp
 end
 
-[delta_1_x,rank1] = sort(delta_1(:,1),'descend');
-% [delta_2_x,rank2] = sort(delta_2(:,1),'descend');
+cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),'VariableNames',{'delta','img','participant','significance'});
+incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),'VariableNames',{'delta','img','participant','significance'});
 
+%% compare delta between conditions
+condition_significance = zeros(80,1);
+for img = 3:82
+    temp1 = Results(Results(:,2)==img & Find_Congruent_CP,9)-Results(Results(:,2)==img & Find_Congruent_IP,9);
+    temp2 = Results(Results(:,2)==img & Find_Incongruent_IP,9)-Results(Results(:,2)==img & Find_Incongruent_CP,9);
+%     cond_data = table([temp1(:,1);temp2(:,1)],[temp1(:,2);temp2(:,2)],'VariableNames',{'delta','congruence'});
+    [h,condition_significance(img-2,1)]= ttest2(temp1,temp2);
+    clear temp1
+    clear temp2
+end
 
-delta_1_x = [delta_1_x delta_1(rank1,2) delta_1(rank1,3)];
-delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3)];
-
-delta_1_x = [delta_1_x(:,1:3) c(rank1,1)];
-delta_2_x = [delta_2_x(:,1:3) in(rank1,1)];
 %% plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),80);
@@ -84,7 +102,7 @@ plot(edges,[Y2_cumulative 80],'LineWidth',1.2,'Color',colours(1,:));
 hold off
 box off
 
-xlabel(['Delta','rcD×C (Original - Modified)']), ylabel('Cumulative counts');
+xlabel(['\Delta','rcD×C (Original - Modified)']), ylabel('Cumulative counts');
 set(gca,'FontName','Arial','FontSize',12);
 xlim([-7 7]);
 legend({'Congruent','Incongruent'},'Box','off','Location','northwest');
@@ -98,6 +116,15 @@ filePattern2 = fullfile(folder2,'*.jpg');
 theFiles1 = dir(filePattern1);
 theFiles2 = dir(filePattern2);
 
+[delta_1_x,rank1] = sort(delta_1(:,1),'descend');
+% [delta_2_x,rank2] = sort(delta_2(:,1),'descend');
+
+
+delta_1_x = [delta_1_x delta_1(rank1,2) delta_1(rank1,3)];
+delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3)];
+
+delta_1_x = [delta_1_x(:,1:3) c(rank1,1)];
+delta_2_x = [delta_2_x(:,1:3) in(rank1,1)];
 
 % display (axis definition [left bottom width height])
 
@@ -131,7 +158,8 @@ for p = 1:5
     end
     hold off
     axis square
-    title({['\Delta','cong = ', num2str(delta_1_x((i-1).*5 + p,1))], ['\Delta','incong = ', num2str(delta_2_x((i-1).*5 + p,1))]});
+    title({['d cong = ', num2str(round(delta_1_x((i-1).*5 + p,1)),1),'[',num2str(delta_1_x((i-1).*5 + p,3)),']'],...
+        ['d incong = ', num2str(round(delta_2_x((i-1).*5 + p,1),1)),'[',num2str(15-delta_1_x((i-1).*5 + p,3)),']']});
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
     
@@ -187,7 +215,7 @@ for p = 1:5
     ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]);
     image(ax1,current_cong);
     axis square
-    title({['delta = ', num2str(delta_2_x((i-1).*5 + p,1)), ', ', num2str(delta_2_x((i-1).*5 + p,3)), ' dva']});
+    title({['delta = ', num2str(round(delta_2_x((i-1).*5 + p,1),1)), ', ', num2str(round(delta_2_x((i-1).*5 + p,3),1)), ' dva']});
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
     
@@ -210,11 +238,23 @@ end
 end
 
 %% create scatterplot
-[A,img_num1] = sort(delta_1_x(:,2));
-[B,img_num2] = sort(delta_2_x(:,2));
+c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
+c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
+c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
+c_y_i_y = cong_delta.significance < 0.05 & incong_delta.significance < 0.05;
 
-scatter(delta_1_x(img_num1,1),delta_2_x(img_num2,1),'filled');
-xlabel(['\delta' 'rcDxC in congruent condition']), ylabel(['\delta' 'rcDxC in incongruent condition']);
+temp_colour = cbrewer('qual', 'Pastel2', 8);
+sz = 50;
+
+scatter(cong_delta.delta(c_n_i_n,1),incong_delta.delta(c_n_i_n,1),[],temp_colour(8,:),'filled','LineWidth',1.2)
+hold on
+scatter(cong_delta.delta(c_n_i_y,1),incong_delta.delta(c_n_i_y,1),[],'red','filled','LineWidth',1.2);
+scatter(cong_delta.delta(c_y_i_n,1),incong_delta.delta(c_y_i_n,1),[],'blue','filled','LineWidth',1.2);
+scatter(cong_delta.delta(c_y_i_y,1),incong_delta.delta(c_y_i_y,1),[],'black','filled','LineWidth',1.2);
+scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(condition_significance < 0.05,1),85,'ks','LineWidth',0.8);
+hold off
+
+xlabel(['\Delta' 'rcDxC in congruent images']), ylabel(['\Delta' 'rcDxC in incongruent images']);
 set(gca,'FontName','Arial','FontSize',12);
 
 

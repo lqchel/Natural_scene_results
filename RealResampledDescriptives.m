@@ -702,16 +702,16 @@ errorbar(1:8,percentage_N,se_N,'.-','MarkerSize',12,'Color',colours(1,:),'Marker
     'LineWidth',1);
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
 
-if loc == 1
-    errorbar(1:8, loc1_mean,loc1_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-elseif loc == 2
-    errorbar(1:8,loc2_mean,loc2_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-elseif loc == 3
-    errorbar(1:8,loc3_mean,loc3_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-end
+% if loc == 1
+%     errorbar(1:8, loc1_mean,loc1_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% elseif loc == 2
+%     errorbar(1:8,loc2_mean,loc2_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% elseif loc == 3
+%     errorbar(1:8,loc3_mean,loc3_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% end
 
 ylim([0 0.7]),xlim([0.5 8.5]);
 hold off
@@ -762,16 +762,16 @@ errorbar(1:8,percentage_N,se_N,'.--','MarkerSize',12,'Color',colours(1,:),'Marke
     'LineWidth',1);
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
 
-if loc == 1
-    errorbar(1:8, loc1_mean,loc1_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-elseif loc == 2
-    errorbar(1:8,loc2_mean,loc2_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-elseif loc == 3
-    errorbar(1:8,loc3_mean,loc3_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
-    'LineWidth',1);
-end
+% if loc == 1
+%     errorbar(1:8, loc1_mean,loc1_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% elseif loc == 2
+%     errorbar(1:8,loc2_mean,loc2_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% elseif loc == 3
+%     errorbar(1:8,loc3_mean,loc3_se,'.--','MarkerSize',12,'Color','magenta','MarkerEdgeColor','magenta','MarkerFaceColor','magenta',...
+%     'LineWidth',1);
+% end
 
 ylim([0 0.7]),xlim([0.5 8.5]);
 hold off
