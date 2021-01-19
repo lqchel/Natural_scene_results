@@ -131,14 +131,16 @@ delta_2_x = [delta_2_x(:,1:3) in(rank1,1)];
 %congruent
 for i = 1:16
 for p = 1:5
-    current_cong= imresize(imread(fullfile(folder1,theFiles1(delta_1_x((i-1).*5+p,2)).name)),[150 150]);
-    ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]);
-    image(ax1,current_cong);
+    current_cong= imresize(imread(fullfile(folder1,theFiles1(delta_1_x((i-1).*5+p,2)).name)),[150 150]); % load and resize image to square shape
+    ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]); % fix axes position in figure window
+    image(ax1,current_cong); % present image
     
     % mark out the critical objects
     hold on
     if delta_1_x((i-1).*5+p,4) == 1
-        plot(ax1,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2);
+        % outline the critical object on the image in red, using the x and y
+        % coordinates of the object area
+        plot(ax1,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2); 
     elseif delta_1_x((i-1).*5+p,4) == 2
         plot(ax1,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
     elseif delta_1_x((i-1).*5+p,4) == 3
