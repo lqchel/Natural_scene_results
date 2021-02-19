@@ -112,6 +112,8 @@ for i = 1:3
                  dividedImage_Is = imcrop(dividedImage_I,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
                  dividedImage_Cs = imcrop(dividedImage_C,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
                  
+                 % filename of patch with largest critical object area ends
+                 % with "p", and filenames of other patches end with "a" 
                  if image_index_s(s,d)== P_index && center_or_periphery(a,1) == 1
                      filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_center',...
                          ['cong_',num2str(a),'_', num2str(patch_number_s(s,d)),'_p', '.jpg']);
@@ -130,6 +132,8 @@ for i = 1:3
             end 
             
         else
+                 % filename of patch with largest critical object area ends
+                 % with "p", and filenames of other patches end with "a" 
               if image_index_l(i,b)== P_index && center_or_periphery(a,1) == 0
                  filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_periphery',...
                      ['cong_',num2str(a),'_', num2str(patch_number_l(i,b)),'_p','.jpg']);
