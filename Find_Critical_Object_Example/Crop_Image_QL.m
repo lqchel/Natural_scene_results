@@ -51,7 +51,6 @@ incongruent = imread(fullname2);
 %congruent image (in RGB matrix)
 %so that in difference images, only the critical objects part are not black
 %(therefore sum of this area is not 0)
-% for cutting other images e.g. scrambled masks, this part can be ignored
 
 filename3 = theFiles3(a).name;
 fullname3 = fullfile(folder3,filename3);
