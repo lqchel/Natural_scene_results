@@ -4,7 +4,12 @@
 %load the files and file names
 folder2 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incongruent'; 
 folder1 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\congruent';
+
+%%% full resource of the difference image, go to
+%%% "Qianchen_Liad_Natural_Scene\experiment codes\squarephotodifferences"
+%%% on google share drive
 folder3 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\photo difference'; 
+
 filePattern1 = fullfile(folder1,'*.jpg');
 filePattern2 = fullfile(folder2,'*.jpg');
 filePattern3 = fullfile(folder3, '*.jpg');
@@ -25,7 +30,8 @@ mkdir('incong_center')
 %crop patches in location 1-8
 edge = 440/3;
 edge_s = 440/6;
-for a = 1:2
+
+for a = 1:length(theFiles1)
 
 %%%Reading congruent image
 
@@ -55,37 +61,48 @@ difference = imread(fullname3);
 % calculate average difference on every pixel location, and determine which
 % patch contains the largest area of the critical object
 image_index_l = zeros(3,3);
+center_or_periphery = zeros(length(theFiles1),1);
 
 for i = 1:3
     for b = 1:3 
     dividedImage_d = imcrop(difference, [(b-1).*edge (i-1).*edge edge edge]);
-        if i == 2 && b == 2
-            
-            image_index_s = zeros(2,2);
-            for s = 1:2
-                for d = 1:2
-                 patch_temp_d = imcrop(dividedImage_d,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
-                 image_index_s(d,s) = sum(sum(sum(patch_temp_d)))/edge_s^2;
-                end
-                clear patch_temp_d
-            end
-            
-        else
-            image_index_l(b,i) = sum(sum(sum(dividedImage_d)))/edge^2;
-        end
-    clear dividedImage_d    
+    image_index_l(i,b) = sum(sum(sum(dividedImage_d)));
     end
 end
-s_max = max(max(image_index_s));
-l_max = max(max(image_index_l));
-P_index = max([s_max; l_max]);
+disp(image_index_l)
 
+%%% if the central location (consist of location 9, 10, 11, 12 altogether),
+%%% takes the largest critical object area, then find the largest object 
+%%% area among the four small patches in the center; if not, find the
+%%% largest object area in peripheral patch
+
+[row, col] = find(image_index_l== max(max(image_index_l)));
+if row == 2 && col == 2
+    center_or_periphery(a,1) = 1;
+    image_index_s = zeros(2,2);
+    middle_patch = imcrop(differece,[edge edge edge edge]);
+    for s = 1:2
+        for d = 1:2
+         patch_temp_d = imcrop(middle_patch,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
+         image_index_s(s,d) = sum(sum(sum(patch_temp_d))); % finds the largest object area among the four small patches in the center
+        end
+    end
+    P_index = max(max(image_index_s));            
+else
+    P_index = max(max(image_index_l));
+    center_or_periphery(a,1) = 0;
+end
+   
+    
 % then, crop the images into small patches
 patch_number_s = [9 10; 11 12];
 patch_number_l = [1 2 3; 4 0 5; 6 7 8];
 
 for i = 1:3
     for b = 1:3 
+        if a == 1
+        disp([(b-1).*edge (i-1).*edge edge edge])
+        end
         dividedImage_I = imcrop(incongruent,[(b-1).*edge (i-1).*edge edge edge]);
         dividedImage_C = imcrop(congruent, [(b-1).*edge (i-1).*edge edge edge]);
  
@@ -95,46 +112,38 @@ for i = 1:3
                  dividedImage_Is = imcrop(dividedImage_I,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
                  dividedImage_Cs = imcrop(dividedImage_C,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
                  
-                 if image_index_s(d,s)== P_index
+                 if image_index_s(s,d)== P_index && center_or_periphery(a,1) == 1
                      filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_center',...
-                         ['cong_',num2str(a),'_', num2str(patch_number_s(d,s)),'_p', '.jpg']);
+                         ['cong_',num2str(a),'_', num2str(patch_number_s(s,d)),'_p', '.jpg']);
                      filename_I = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incong_center',...
-                         ['incong_',num2str(a),'_', num2str(patch_number_s(d,s)),'_p', '.jpg']);
+                         ['incong_',num2str(a),'_', num2str(patch_number_s(s,d)),'_p', '.jpg']);
                  else
                      filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_center',...
-                         ['cong_',num2str(a),'_', num2str(patch_number_s(d,s)),'_a', '.jpg']);
+                         ['cong_',num2str(a),'_', num2str(patch_number_s(s,d)),'_a', '.jpg']);
                      filename_I = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incong_center',...
-                         ['incong_',num2str(a),'_', num2str(patch_number_s(d,s)),'_a', '.jpg']);
+                         ['incong_',num2str(a),'_', num2str(patch_number_s(s,d)),'_a', '.jpg']);
 
                  end
                  imwrite(dividedImage_Is,filename_I);
                  imwrite(dividedImage_Cs,filename_C);
-                clear dividedImage_Is
-                clear dividedImage_Cs
-                clear filename_C
-                clear filename_I
                 end
             end 
             
         else
-              if image_index_l(b,i)== P_index
+              if image_index_l(i,b)== P_index && center_or_periphery(a,1) == 0
                  filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_periphery',...
-                     ['cong_',num2str(a),'_', num2str(patch_number_l(b,i)),'_p','.jpg']);
+                     ['cong_',num2str(a),'_', num2str(patch_number_l(i,b)),'_p','.jpg']);
                  filename_I = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incong_periphery',...
-                     ['incong_',num2str(a),'_', num2str(patch_number_l(b,i)),'_p', '.jpg']);
+                     ['incong_',num2str(a),'_', num2str(patch_number_l(i,b)),'_p', '.jpg']);
               else
                  filename_C = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\cong_periphery',...
-                     ['cong_',num2str(a),'_', num2str(patch_number_l(b,i)),'_a','.jpg']);
+                     ['cong_',num2str(a),'_', num2str(patch_number_l(i,b)),'_a','.jpg']);
                  filename_I = fullfile('C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incong_periphery',...
-                     ['incong_',num2str(a),'_', num2str(patch_number_l(b,i)),'_a', '.jpg']);
+                     ['incong_',num2str(a),'_', num2str(patch_number_l(i,b)),'_a', '.jpg']);
               end
              imwrite(dividedImage_I,filename_I);
              imwrite(dividedImage_C,filename_C);
         end
-        clear dividedImage_I    
-        clear dividedImage_C
-        clear filename_C
-        clear filename_I
     end
 end
 
