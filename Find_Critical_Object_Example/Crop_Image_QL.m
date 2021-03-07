@@ -5,18 +5,12 @@
 folder2 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\incongruent'; 
 folder1 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\congruent';
 
-%%% full resource of the difference image, go to
-%%% "Qianchen_Liad_Natural_Scene\experiment codes\squarephotodifferences"
-%%% on google share drive
-folder3 = 'C:\Users\liang\OneDrive\Documents\honours\research project\Natural_scene_results\Find_Critical_Object_Example\photo difference'; 
-
 filePattern1 = fullfile(folder1,'*.jpg');
 filePattern2 = fullfile(folder2,'*.jpg');
-filePattern3 = fullfile(folder3, '*.jpg');
 
 theFiles1 = dir(filePattern1);
 theFiles2 = dir(filePattern2);
-theFiles3 = dir(filePattern3);
+
 
 % create save locations
 
@@ -52,10 +46,7 @@ incongruent = imread(fullname2);
 %so that in difference images, only the critical objects part are not black
 %(therefore sum of this area is not 0)
 
-filename3 = theFiles3(a).name;
-fullname3 = fullfile(folder3,filename3);
-fprintf(1,'Now reading %s\n',fullname3');
-difference = imread(fullname3);
+difference = abs(congruent - incongruent);
 
 % calculate difference on every pixel location, and determine which
 % patch contains the largest area of the critical object
