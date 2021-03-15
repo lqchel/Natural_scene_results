@@ -55,29 +55,29 @@ image_index_l = zeros(3,3);
 for i = 1:3
     for b = 1:3 
     dividedImage_d = imcrop(difference, [(b-1).*edge (i-1).*edge edge edge]);
-    image_index_l(i,b) = sum(sum(sum(dividedImage_d)));
+    image_index_l(i,b) = sum(sum(sum(dividedImage_d)))/(edge^2);
     end
 end
+image_index_l(2,2) = 0;
 
 middle_patch = imcrop(difference,[edge edge edge edge]);
 image_index_s = zeros(2,2);
 for s = 1:2
     for d = 1:2
      patch_temp_d = imcrop(middle_patch,[(d-1).*edge_s (s-1).*edge_s edge_s edge_s]);
-     image_index_s(s,d) = sum(sum(sum(patch_temp_d))); % finds the largest object area among the four small patches in the center
+     image_index_s(s,d) = sum(sum(sum(patch_temp_d)))/(edge_s^2); % finds the largest object area among the four small patches in the center
     end
 end
-disp(image_index_s)
+
 
 %%% if the central location (consist of location 9, 10, 11, 12 altogether),
 %%% takes the largest critical object area, then find the largest object 
 %%% area among the four small patches in the center; if not, find the
 %%% largest object area in peripheral patch
 
-[row, col] = find(image_index_l== max(max(image_index_l)));
-center_or_periphery = zeros(length(theFiles1),1);
 
-if row == 2 && col == 2
+center_or_periphery = zeros(length(theFiles1),1);
+if max(max(image_index_s)) > max(max(image_index_l))
     center_or_periphery(a,1) = 1;
     P_index = max(max(image_index_s));            
 else
