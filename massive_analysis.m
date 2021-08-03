@@ -78,6 +78,16 @@ end
 cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),'VariableNames',{'delta','img','participant','significance'});
 incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),'VariableNames',{'delta','img','participant','significance'});
 
+%% calculate correlation between conditions
+
+[R,P] = corrcoef(cong_delta.delta, incong_delta.delta)
+
+%% create spreadsheet for cross-validation of deltas from different experiments
+
+cong_incong_delta = table(delta_1(:,2),delta_1(:,1),delta_2(:,1),'VariableNames',{'Image_ID', 'Qianchen_d_cong', 'Qianchen_d_incong'});
+sheet_filename = 'cong_incong_delta.csv';
+writetable(cong_incong_delta,sheet_filename)
+
 %% compare delta between conditions
 condition_significance = zeros(80,1);
 for img = 3:82
@@ -102,7 +112,7 @@ plot(edges,[Y2_cumulative 80],'LineWidth',1.2,'Color',colours(1,:));
 hold off
 box off
 
-xlabel(['\Delta','rcD×C (Original - Modified)']), ylabel('Cumulative counts');
+xlabel(['\Delta','tD×C (Original - Modified)']), ylabel('Cumulative counts');
 set(gca,'FontName','Arial','FontSize',12);
 xlim([-7 7]);
 legend({'Congruent','Incongruent'},'Box','off','Location','northwest');
@@ -240,6 +250,7 @@ end
 end
 
 %% create scatterplot
+
 c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
 c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
 c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
@@ -256,8 +267,8 @@ scatter(cong_delta.delta(c_y_i_y,1),incong_delta.delta(c_y_i_y,1),[],'black','fi
 scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(condition_significance < 0.05,1),85,'ks','LineWidth',0.8);
 hold off
 
-xlabel(['\Delta' 'rcDxC in congruent images']), ylabel(['\Delta' 'rcDxC in incongruent images']);
-set(gca,'FontName','Arial','FontSize',12);
+xlabel(['\Delta' 'tDxC in congruent images']), ylabel(['\Delta' 'tDxC in incongruent images']);
+set(gca,'FontName','Arial','FontSize',16);
 
 
 

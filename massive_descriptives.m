@@ -4,8 +4,9 @@
 %%% data = the data matrix, num_sub = number of participants.
 
 
-function [out] = massive_descriptives(data, num_sub)
-Results = data;
+function [out] = massive_descriptives(data)
+ Results = data(data(:,11)~=0,:);
+num_sub = length(unique(Results(:,1)));
 Results(:,9) = Results(:,8).*Results(:,9);
 
 %Find trials that presented N patches -- signal absent for hypo 1
@@ -18,14 +19,20 @@ Find_IAP = Results(:,4) == 1 & Results(:,5) == 3;
 
 %Congruent trial with Congruent object, and incongruent trial with
 %incongruent object -- signal present for hypo 2
-Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1;
+Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1; % Results(:,6) == 1 for experiment 2
 Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 
 %Incongruent trial with congruent object, congruent trial with incongruent
 %object -- signal absent for hypo 2
-
 Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
+
+% uncomment for exp 1 results
+% ecc_level_1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;
+% ecc_level_2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 2;
+% ecc_levels = zeros(length(Results),1)+ ecc_level_1 + ecc_level_2;
+% Results = [Results ecc_levels];
+
 
 %% hypothesis 1
 %proportion of responses
@@ -68,8 +75,8 @@ end
 % m_All = [reshape(m_AP,[8,1]) reshape(m_N,[8,1])];
 % %manually setting the x, y, and error for error bar
 % for a = 1:8
-%     ax(2.*a - 1)= a - 0.14;
-%     ax(2.*a) = a + 0.14;
+%     ax(2.*a - 1)= a - 0.16;
+%     ax(2.*a) = a + 0.16;
 %     m_hypo1(2.*a-1) = m_AP(:,a);
 %     m_hypo1(2.*a) = m_N(a);
 %     se_hypo1(2.*a - 1) = se_AP(a);
@@ -101,8 +108,9 @@ end
 set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
 ylim([0 1]);
 xlim([0.5 8.5]);
-title('Across eccentricities','FontName','Arial');
-legend({'Present','Null'});
+title('Across eccentricities','FontName','Arial','FontSize',12);
+legend({'Present + original','Null'},'Location','northwest','FontSize',12);
+legend('boxoff');
 
 % colours = cbrewer('qual', 'Set1', 8); 
 % out = figure;
@@ -119,21 +127,17 @@ legend({'Present','Null'});
 % legend({'Present patch','Null patch'});
 
 %% hypothesis 1 on eccentricity 
-location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.48;
-location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.16;
-eccentricity = zeros(length(Results),1)+ location1 + location2;
 
-Results = [Results eccentricity];
-location = [0 6.48 9.16];
+location = [0 1 2];
 
 for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_N & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
-            length(Results(Results(:,end)==location(loc)&Find_N & Results(:,1)==subject_code(sub),:));
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&(Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
-            length(Results(Results(:,end)==location(loc)&(Find_CAP|Find_IAP) & Results(:,1)== subject_code(sub),:));
+        pcg_N(sub,i) = size(Results(Results(:,13)==location(loc)& Find_N & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)&Find_N & Results(:,1)==subject_code(sub),:),1);
+        pcg_AP(sub,i) = size(Results(Results(:,13)==location(loc)&(Find_IAP|Find_CAP) & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)&(Find_CAP|Find_IAP) & Results(:,1)== subject_code(sub),:),1);
         end
     end
 
@@ -142,6 +146,11 @@ pcg_AP = [pcg_AP(:,1:4) pcg_AP(:,6:9)];
  
 percentage_N = mean(pcg_N,1);
 percentage_AP = mean(pcg_AP,1);
+
+if loc == 1
+    sum(percentage_AP)
+    sum(pcg_AP(1,:))
+end
 
 if num_sub>=3
 se_AP = std(pcg_AP)/sqrt(num_sub);
@@ -153,8 +162,8 @@ end
 %         std_hypo3(2.*a) = se_N(:,a);
 %         m_hypo3(2.*a-1) = percentage_AP(:,a);
 %         m_hypo3(2.*a) = percentage_N(:,a);
-%         ax(2.*a - 1)= a - 0.14;
-%         ax(2.*a) = a + 0.14;
+%         ax(2.*a - 1)= a - 0.16;
+%         ax(2.*a) = a + 0.16;
 %     end
 
 m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
@@ -190,12 +199,12 @@ end
 % errorbar(ax,m_hypo3,std_hypo3,'k.','LineWidth',1);
 % hold off
     if loc ==1
-    title('Eccentricity = 0 dva','FontWeight','normal');
+    title('Foveal','FontWeight','normal','FontSize',12);
     ylabel(' ');
     elseif loc == 2
-    title('Eccentricity = 6.50 dva','FontWeight','normal');
+    title('Peripheral','FontWeight','normal','FontSize',12);
     else
-    title('Eccentricity = 9.20 dva','FontWeight','normal');
+    title('Para-peripheral','FontWeight','normal','FontSize',12);
     end
     legend('off');
  
@@ -216,13 +225,13 @@ for i = 1:9
    
     for sub = 1:num_sub
         percentage_CP(sub,i) = size(Results(Results(:,1)== subject_code(sub) & Find_Congruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== subject_code(sub) & Find_Congruent_CP,:));
+            size(Results(Results(:,1)== subject_code(sub) & Find_Congruent_CP,:),1);
         percentage_CI(sub,i) = size(Results(Results(:,1)== subject_code(sub) &Find_Congruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== subject_code(sub) & Find_Congruent_IP,:));
+            size(Results(Results(:,1)== subject_code(sub) & Find_Congruent_IP,:),1);
         percentage_IP(sub,i) =  size(Results(Results(:,1)== subject_code(sub) &Find_Incongruent_IP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_IP,:));
+            size(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_IP,:),1);
         percentage_II(sub,i) =  size(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_CP & Results(:,9)== i-5,:),1)/...
-            length(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_CP,:));
+            size(Results(Results(:,1)== subject_code(sub) & Find_Incongruent_CP,:),1);
     end
 end
 
@@ -271,7 +280,8 @@ if num_sub <3
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
     xlim([0.5 8.5]),ylim([0 1]);
     hold off
-    legend({'Congruent original','Congruent modified'});
+    legend({'Original','Modified'},'Location','northwest');
+    legend('boxoff')
 
     subplot(3,4,9),plot(1:8,percentage_IP,'.--','MarkerSize',12,'Color',colours(2,:),'MarkerEdgeColor',colours(2,:),'LineWidth',1);
     hold on
@@ -279,7 +289,8 @@ if num_sub <3
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
     xlim([0.5 8.5]),ylim([0 1]);
     hold off
-    legend({'Incongruent original','Incongruent modified'});
+    legend({'Original','Modified'},'Location','northwest','FontSize',12);
+    legend('boxoff')
 else
     
     subplot(3,4,5),errorbar(1:8,percentage_CP,se_CP,'.-','MarkerSize',12,'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',...
@@ -290,7 +301,8 @@ else
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
     xlim([0.5 8.5]),ylim([0 1]);
     hold off
-    legend({'Congruent original','Congruent modified'});
+    legend({'Original','Modified'},'Location','northwest','FontSize',12);
+    legend('boxoff')
     
     subplot(3,4,9),errorbar(1:8,percentage_IP,se_IP,'.--','MarkerSize',12,'Color',colours(2,:),'MarkerEdgeColor',colours(2,:),'LineWidth',1);
     hold on
@@ -298,7 +310,8 @@ else
     set(gca,'XTick',[1:1:8],'XTickLabel',{'-4','-3','-2','-1','1','2','3','4'},'FontSize', 12,'FontName','Arial','Box','off');
     xlim([0.5 8.5]),ylim([0 1]);
     hold off
-    legend({'Incongruent original','Incongruent modified'});
+    legend({'Original','Modified'},'Location','northwest','FontSize',12);
+    legend('boxoff')
 
 end
 
@@ -331,16 +344,16 @@ end
 
 %% hypothesis 2 on eccentricity
 % congruent
-location = [0 6.48 9.16];
+location = [0 1 2];
 
 for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Congruent_IP & Results(:,1)==subject_code(sub),:),1);
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Congruent_CP & Results(:,1)== subject_code(sub),:),1);
+        pcg_N(sub,i) = size(Results(Results(:,13)==location(loc)& Find_Congruent_IP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)& Find_Congruent_IP & Results(:,1)==subject_code(sub),:),1);
+        pcg_AP(sub,i) = size(Results(Results(:,13)==location(loc)&Find_Congruent_CP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)&Find_Congruent_CP & Results(:,1)== subject_code(sub),:),1);
         end
     end
     
@@ -362,8 +375,8 @@ end
 %         std_hypo3(2.*a) = se_N(:,a);
 %         m_hypo3(2.*a-1) = percentage_AP(:,a);
 %         m_hypo3(2.*a) = percentage_N(:,a);
-%         ax(2.*a - 1)= a - 0.14;
-%         ax(2.*a) = a + 0.14;
+%         ax(2.*a - 1)= a - 0.16;
+%         ax(2.*a) = a + 0.16;
 %     end
 %     
 % m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
@@ -423,10 +436,10 @@ for loc = 1:3
     
     for i = 1:9
         for sub = 1:num_sub
-        pcg_N(sub,i) = size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
-            size(Results(Results(:,end)==location(loc)& Find_Incongruent_CP & Results(:,1)==subject_code(sub),:),1);
-        pcg_AP(sub,i) = size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
-            size(Results(Results(:,end)==location(loc)&Find_Incongruent_IP & Results(:,1)== subject_code(sub),:),1);
+        pcg_N(sub,i) = size(Results(Results(:,13)==location(loc)& Find_Incongruent_CP & Results(:,9)== i-5 & Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)& Find_Incongruent_CP & Results(:,1)==subject_code(sub),:),1);
+        pcg_AP(sub,i) = size(Results(Results(:,13)==location(loc)&Find_Incongruent_IP & Results(:,9)== i-5& Results(:,1)== subject_code(sub),:),1)/...
+            size(Results(Results(:,13)==location(loc)&Find_Incongruent_IP & Results(:,1)== subject_code(sub),:),1);
         end
     end
     
@@ -474,8 +487,8 @@ end
 %         std_hypo3(2.*a) = se_N(:,a);
 %         m_hypo3(2.*a-1) = percentage_AP(:,a);
 %         m_hypo3(2.*a) = percentage_N(:,a);
-%         ax(2.*a - 1)= a - 0.14;
-%         ax(2.*a) = a + 0.14;
+%         ax(2.*a - 1)= a - 0.16;
+%         ax(2.*a) = a + 0.16;
 %     end
 %     
 % m_All = [reshape(percentage_AP,[8,1]) reshape(percentage_N,[8,1])];
