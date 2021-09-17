@@ -3,8 +3,19 @@
 %%% for this function to work, please make sure to install PsychToolbox (http://psychtoolbox.org/)
 
 
-%function out = AUC_matrix(data)
-Results = data(data(:,11)~=0,:); %% exclude catch trials
+function out = AUC_matrix(data,exp)
+if exp == 1
+    Results = data;
+    location1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;
+    location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 2;
+    eccentricity_level = zeros(length(Results),1)+ location1 + location2;
+    real_location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.5;
+    real_location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
+    actual_eccentrcity = zeros(length(Results),1) + real_location1 + real_location2;
+    Results = [Results eccentricity_level actual_eccentrcity];
+else
+    Results = data(data(:,11)~=0,:); %% exclude catch trials    
+end
 
 location = [0 1 2];
 
