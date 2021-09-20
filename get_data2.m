@@ -21,3 +21,7 @@ Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 %object -- signal absent for hypo 2
 Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
+
+subject_id = unique(Results(:,1));
+num_sub = length(subject_id);
+location = [0 1 2];
