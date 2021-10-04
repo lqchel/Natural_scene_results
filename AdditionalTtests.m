@@ -258,7 +258,7 @@ ylim([0 1]),ylabel('Percentage of present judgments')
 set(gca,'FontName','Arial','FontSize',12)
 
 
-% each temporal position
+%% each temporal position
 exp_patch_number = [21 6];
 b = 1;
 for exp = 1:2
@@ -294,6 +294,9 @@ for exp = 1:2
         all_hits(b,:) = [exp position current_hit];
         current_miss = size(Results(Find_N & Results(:,8) == 1 & Results(:,3) == position,:),1) / size(Results(Find_N & Results(:,3) == position,:),1);
         all_misses(b,:) = [exp position current_miss];
+        current_mod_FA = size(Results((Find_Congruent_IP|Find_Incongruent_CP) & Results(:,8) == 1 & Results(:,3) == position,:),1) /...
+            size(Results((Find_Congruent_IP|Find_Incongruent_CP) & Results(:,3) == position,:),1);
+        all_mod_FA(b,:) = [exp position current_mod_FA];
         b = b+1;
     end
 clear Results
@@ -301,14 +304,15 @@ end
 
 colours_1 = cbrewer('qual','Set2',8);
 colours_2 = cbrewer('qual','Set1',4);
-subplot(1,2,1);
+%subplot(1,2,1);
 plot(all_hits(all_hits(:,1) == 1,2),all_hits(all_hits(:,1) == 1,3),'.-','Color',colours_1(3,:),'LineWidth',1.5);
 hold on
 plot(all_misses(all_misses(:,1) == 1,2),all_misses(all_misses(:,1) == 1,3),'.-','Color',colours_1(2,:),'LineWidth',1.5);
+plot(all_mod_FA(all_mod_FA(:,1) == 1,2),all_mod_FA(all_mod_FA(:,1) == 1,3),'.-','Color',colours_1(4,:),'LineWidth',1.5);
 plot(all_hits(all_hits(:,1) == 2,2),all_hits(all_hits(:,1) == 2,3),'d-','Color',colours_2(2,:),'LineWidth',1.5);
 plot(all_misses(all_misses(:,1) == 2,2),all_misses(all_misses(:,1) == 2,3),'d-','Color',colours_2(1,:),'LineWidth',1.5);
+plot(all_mod_FA(all_mod_FA(:,1) == 2,2),all_mod_FA(all_mod_FA(:,1) == 2,3),'d-','Color','magenta','LineWidth',1.5);
 hold off
-legend({'Exp 1 present','Exp 1 absent','Exp 2 present', 'Exp 2 absent'});
 ylabel('Percentage of present judgements');
 set(gca,'FontSize',12);
 xlabel('Patch order within trial');
@@ -317,6 +321,7 @@ xlim([1 21]);
 clear all_hits
 clear all_misses
 
+%% 
 b = 1;
 
 for exp = 1:2

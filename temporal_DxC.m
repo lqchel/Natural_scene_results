@@ -68,14 +68,16 @@ elseif change == 1
         A_change_from_1(:,:,a) = pcgA_matrix(:,:,a) - A_1_mat;
     end
 
-
+%     max(max(max(P_change_from_1)))
+%     max(max(max(A_change_from_1)))
+    
     %%% plot figure
     out = figure;
     for a = 1:3
         figure(out);
         subplot(2,3,a);
-        imagesc(flip(P_change_from_1(:,:,a),1),[-0.3 0]);
-        colormap(flip(parula))
+        imagesc(flip(P_change_from_1(:,:,a),1),[-0.3 0.2]);
+        %colormap(flip(parula))
         colorbar
         set(gca,'YTick',[1:1:8],'YTickLabel',{'4','3','2','1','-1','-2','-3','-4'},'FontSize', 12,'FontName','Arial');
         titles = {'Fovea','Periphery','Para-periphery'};
@@ -83,15 +85,15 @@ elseif change == 1
         xticks(1:1:6);
 
         subplot(2,3,a+3);
-        imagesc(flip(A_change_from_1(:,:,a),1),[-0.3 0]);
-        colormap(flip(parula))
+        imagesc(flip(A_change_from_1(:,:,a),1),[-0.3 0.2]);
+       % colormap(flip(parula))
         colorbar
         set(gca,'YTick',[1:1:8],'YTickLabel',{'4','3','2','1','-1','-2','-3','-4'},'FontSize', 12,'FontName','Arial');
         xticks(1:1:6);
 
     end
 
-end
+ end
 
 end
 
