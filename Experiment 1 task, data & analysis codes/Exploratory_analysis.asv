@@ -138,12 +138,6 @@ for img = 1:max(img_id)
     
 end
 
-scatter(weibull_stat(:,2),cong_delta.delta)
-scatter(weibull_stat(:,3),incong_delta.delta)
-[R,P] = corrcoef(weibull_stat(:,3),incong_delta.delta)
-[r,p] = corrcoef(weibull_stat(:,2),cong_delta.delta)
-scatter([weibull_stat(:,2); weibull_stat(:,3)], [cong_delta.delta; incong_delta.delta])
-[r,p] = corrcoef([weibull_stat(:,2); weibull_stat(:,3)], [cong_delta.delta; incong_delta.delta])
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),max(img_id));
