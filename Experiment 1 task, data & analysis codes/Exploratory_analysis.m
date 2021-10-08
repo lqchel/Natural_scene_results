@@ -194,6 +194,30 @@ set(gca,'FontName','Arial','FontSize',12);
 xlabel('Scale (Beta)');
 ylabel('Shape (Gamma)');
 
+%% plot original color image, gradient magnitude image, histogram and fitted weibull distribution
+
+sel_img = [12 1 48 54 97];
+for i = 1:length(sel_img)
+    current_colour_img =  imresize(imread(fullfile(folder1,theFiles1(sel_img(i)).name)),[150 150]); 
+    gradient_mag = imgradient(rgb2gray(current_colour_img));
+    gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
+    pd = fitdist(gradient_vector,'weibull');
+    
+    figure;
+    subplot(1,3,1),imshow(current_colour_img);
+    subplot(1,3,2),imshow(uint8(gradient_mag));
+    subplot(1,3,3);
+    histogram(gradient_mag,256,'Normalization','pdf')
+    hold on
+    x = linspace(0,max(gradient_vector));
+    plot(x,pdf(pd,x),'LineWidth',3);
+    xlim([0 max(gradient_vector)]);
+    hold off
+    title(['\beta' ' = ' num2str(round(pd.A,2)) ' \gamma' ' = ' num2str(round(pd.B,2))]);
+    xlabel('Edge Strength'), ylabel('Probability');
+    axis square
+end
+
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),max(img_id));
