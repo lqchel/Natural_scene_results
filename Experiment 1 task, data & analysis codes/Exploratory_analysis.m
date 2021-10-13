@@ -1,5 +1,5 @@
 %% get data
-%Results = importdata('Pooled Results.mat'); 
+% Results = importdata('Pooled Results 2.mat'); 
 Results = importdata('Exp2_data.mat');
 Results = Results(Results(:,11)~=0,:);
 Results(:,9) = Results(:,9) - 0.5;
@@ -23,9 +23,13 @@ Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
 
-% location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.5;
-% location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
-% eccentricity = zeros(length(Results),1)+ location1 + location2;
+%%%% uncomment for exp 1 results
+% Results(:,11) = Results(:,2);
+% img_id = unique(Results(:,11));
+% ecc_level_1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;
+% ecc_level_2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 2;
+% ecc_levels = zeros(length(Results),1)+ ecc_level_1 + ecc_level_2;
+% Results = [Results ecc_levels];
 
 % load image list
 folder1 = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\squareimage\congruent cropped'; 
@@ -47,17 +51,18 @@ theFiles2 = dir(filePattern2);
 delta_1 = zeros(length(img_id),3);
 %size = zeros(80,1);
 cong_significance = zeros(80,1);
-for img = 1:max(img_id)
+for img = 1:length(img_id)
 %     current_cong= imread(fullfile(folder1,theFiles1(img-2).name));
 %     current_incong= imread(fullfile(folder2,theFiles2(img-2).name));
-    col_length = min([length(Results(Results(:,11)==img & Find_Congruent_CP,9)) length(Results(Results(:,11)==img & Find_Congruent_IP,9))]);
-    dxc_c_c = Results(Results(:,11)==img & Find_Congruent_CP,9);
-    dxc_c_i = Results(Results(:,11)==img & Find_Congruent_IP,9);
+    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9)) length(Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9))]);
+    dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
+    dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
     temp = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
     delta_1(img,1) = mean(temp);
     delta_1(img,2) = img;
     delta_1(img,3) = col_length;
     [h,delta_1(img,4)] = ttest(temp,0); 
+    delta_1(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,13));
     clear temp
     clear col_length
 end
@@ -66,40 +71,42 @@ end
 delta_2 = zeros(length(img_id),3);
 %condition_diff = zeros(80,1);
 incong_significance = zeros(80,1);
-for img = 1:max(img_id)
-    col_length = min([length(Results(Results(:,11)==img & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img & Find_Incongruent_CP,9))]);
-    dxc_i_i = Results(Results(:,11)==img & Find_Incongruent_IP,9);
-    dxc_i_c = Results(Results(:,11)==img & Find_Incongruent_CP,9);
+for img = 1:length(img_id)
+    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9))]);
+    dxc_i_i = Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9);
+    dxc_i_c = Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9);
     temp = dxc_i_i(1:col_length,:)-dxc_i_c(1:col_length,:);
     delta_2(img,1) = mean(temp);
-    delta_2(img,2) = img;
+    delta_2(img,2) = img_id(img);
     delta_2(img,3) = col_length;
     %condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
     [h,delta_2(img,4)] = ttest(temp,0);
+    delta_2(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,13));
 
     clear temp
 end
 
 %%%%%%%%%%%%%%%%%% tDxC tables for each condition %%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),'VariableNames',{'delta','img','num_sub','significance'});
-incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),'VariableNames',{'delta','img','num_sub','significance'});
+cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),delta_1(:,5),'VariableNames',{'delta','img','num_sub','significance','eccentricity'});
+incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),delta_1(:,5),'VariableNames',{'delta','img','num_sub','significance','eccentricity'});
 
 
 %% compare delta between conditions
 
-[R,P] = corrcoef(cong_delta.delta, incong_delta.delta)
+[r1,p1] = corrcoef(cong_delta.delta, incong_delta.delta)
+
 condition_significance = zeros(80,1);
-for img = 1:max(img_id)
-    col_length = min([length(Results(Results(:,11)==img & Find_Congruent_CP,9)) length(Results(Results(:,11)==img & Find_Congruent_IP,9))]);
-    dxc_c_c = Results(Results(:,11)==img & Find_Congruent_CP,9);
-    dxc_c_i = Results(Results(:,11)==img & Find_Congruent_IP,9);
+for img = 1:length(img_id)
+    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9)) length(Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9))]);
+    dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
+    dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
     temp1 = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
     clear col_length
     
-    col_length = min([length(Results(Results(:,11)==img & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img & Find_Incongruent_CP,9))]);
-    dxc_i_i = Results(Results(:,11)==img & Find_Incongruent_IP,9);
-    dxc_i_c = Results(Results(:,11)==img & Find_Incongruent_CP,9);
+    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9))]);
+    dxc_i_i = Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9);
+    dxc_i_c = Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9);
     temp2 = dxc_i_i(1:col_length,:)-dxc_i_c(1:col_length,:);
     
     [h,condition_significance(img,1)]= ttest2(temp1,temp2);
@@ -107,7 +114,7 @@ for img = 1:max(img_id)
     clear temp2
 end
 
-%% calculate image statistics
+%% calculate weibull statistics
 
 %%%%%%%% weibull parameters for image contrast
 b = 1;
@@ -128,13 +135,13 @@ for img = 1:max(img_id)
         scale_values(condition) = pd.A; % record beta parameters for current image pair
 
 % 
-        histogram(gradient_mag,256,'Normalization','pdf')
-        hold on
-        x = linspace(0,max(gradient_vector));
-        plot(x,pdf(pd,x),'LineWidth',3);
-        xlim([0 max(gradient_vector)]);
-        pause(0.2)
-        hold off
+%         histogram(gradient_mag,256,'Normalization','pdf')
+%         hold on
+%         x = linspace(0,max(gradient_vector));
+%         plot(x,pdf(pd,x),'LineWidth',3);
+%         xlim([0 max(gradient_vector)]);
+%         pause(0.2)
+%         hold off
           
        clear current_img
        clear pd
@@ -217,6 +224,77 @@ for i = 1:length(sel_img)
     xlabel('Edge Strength'), ylabel('Probability');
     axis square
 end
+
+%% calculate critical object sizes
+
+b = 1;
+for img = 1:length(img_id) 
+
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
+    difference_mat = sum(difference_mat,3);
+    current_object_size = sum(sum(difference_mat > 0))/150^2;   
+    object_size(b,:) = [img current_object_size];
+    clear current_object_size
+    clear difference_mat
+    b = b+1;
+end
+
+scatter(object_size(:,2),cong_delta.delta,'filled');
+lsline
+hold on
+scatter(object_size(:,2),incong_delta.delta,'filled');
+lsline
+hold off
+[r,p] = corrcoef(object_size(:,2),cong_delta.delta)
+[r2,p2] = corrcoef(object_size(:,2),incong_delta.delta)
+[r3,p3] = corrcoef([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta])
+%% calculate sailiency statistics for each image
+%%%% require SaliencyToolbox 2.3 by Itti et al
+%%%% download link: http://www.saliencytoolbox.net/doc/index.html
+
+b = 1;
+for img = 1:1%length(img_id) 
+    % get difference matrix between congruent and incongruent images, by
+    % subtracting incongruent image from congruent image, and get the
+    % absolute value - imshow this matrix will reveal the area of change
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
+    for condition = 1:2
+        % load and resize image to square shape, convert to grayscale
+        if condition == 1
+            load_img= imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]); 
+        else
+            load_img= imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
+        end
+        current_img = initializeImage(load_img);
+        params = defaultSaliencyParams;
+        salmap = makeSaliencyMap(current_img,params);
+        bigMap = imresize(salmap.data,current_img.size(1:2));
+%         bigMap(bigMap<0) = 0;
+        final_salmap = 255*mat2gray(bigMap); %% here convert the saliency map to grayscale image
+        crit_object_area = sum(difference_mat,3) >0; %% area of critical object shown as 0s and 1s
+        crit_object_saliency = final_salmap .* crit_object_area; %% saliency data remain for critical object area, otherwise 0
+        saliency_percentage(condition) = sum(sum(crit_object_saliency))/sum(sum(final_salmap));
+%         
+% %         clear load_img
+% %         clear current_img
+% %         clear params
+% %         clear salmap
+% %         clear bigMap
+% %         clear final_salmap
+% %         clear crit_object_area
+% %         clear crit_object_saliency
+    end
+    
+    saliency_stat(b,:) = [img saliency_percentage];
+    clear saliency_percentage
+    b = b+1;
+    
+end
+
+[r,p] = corrcoef([saliency_stat(:,2); saliency_stat(:,3)],[cong_delta.delta incong_delta.delta])
+
+
+
 
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
@@ -380,18 +458,23 @@ end
     clf;
 end
 
-%% create scatterplot
+%% create scatterplot, by cong and incong conditions
 
 c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
 c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
 c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
 c_y_i_y = cong_delta.significance < 0.05 & incong_delta.significance < 0.05;
+x_lim = [-2 8];
+y_lim = [-6 6];
 
-temp_colour = cbrewer('qual', 'Pastel2', 8);
+temp_colour = cbrewer('qual', 'Set1', 9);
+line_colour = cbrewer('qual','Set2',8);
 sz = 50;
-
-scatter(cong_delta.delta(c_n_i_n,1),incong_delta.delta(c_n_i_n,1),[],temp_colour(8,:),'filled','LineWidth',1.2)
+plot([0 0],y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5); % add x = 0 line
 hold on
+plot(x_lim,[0 0],'--','Color',line_colour(3,:),'LineWidth',1.5); % y = 0
+plot(x_lim,y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5); % x = y
+scatter(cong_delta.delta(c_n_i_n,1),incong_delta.delta(c_n_i_n,1),[],temp_colour(9,:),'filled','LineWidth',1.2)
 scatter(cong_delta.delta(c_n_i_y,1),incong_delta.delta(c_n_i_y,1),[],'red','filled','LineWidth',1.2);
 scatter(cong_delta.delta(c_y_i_n,1),incong_delta.delta(c_y_i_n,1),[],'blue','filled','LineWidth',1.2);
 scatter(cong_delta.delta(c_y_i_y,1),incong_delta.delta(c_y_i_y,1),[],'black','filled','LineWidth',1.2);
@@ -399,7 +482,25 @@ scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(con
 hold off
 
 xlabel(['\Delta' 'tDxC in congruent images']), ylabel(['\Delta' 'tDxC in incongruent images']);
-set(gca,'FontName','Arial','FontSize',16);
-xlim([-2 6]), ylim([-4 5])
+set(gca,'FontName','Arial','FontSize',16,'Box','off');
+xlim(x_lim), ylim(y_lim);
+[r,p] = corrcoef(cong_delta.delta(~c_n_i_n,1), incong_delta.delta(~c_n_i_n,1))
 [r,p] = corrcoef(cong_delta.delta, incong_delta.delta)
+
+%% create scatterplot, by stimulus locations
+
+plot([0 0],y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5);
+hold on
+plot(x_lim,[0 0],'--','Color',line_colour(3,:),'LineWidth',1.5);
+plot(x_lim,y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5);
+scatter(cong_delta.delta(cong_delta.eccentricity == 0),incong_delta.delta(incong_delta.eccentricity == 0),[],'red','filled','LineWidth',1.2);
+scatter(cong_delta.delta(cong_delta.eccentricity == 1),incong_delta.delta(incong_delta.eccentricity == 1),[],'blue','filled','LineWidth',1.2);
+scatter(cong_delta.delta(cong_delta.eccentricity == 2),incong_delta.delta(incong_delta.eccentricity == 2),[],'black','filled','LineWidth',1.2);
+scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(condition_significance < 0.05,1),95,'ks','LineWidth',0.8);
+hold off
+xlabel(['\Delta' 'tDxC in congruent images']), ylabel(['\Delta' 'tDxC in incongruent images']);
+set(gca,'FontName','Arial','FontSize',16,'Box','off');
+xlim(x_lim), ylim(y_lim)
+
+
 
