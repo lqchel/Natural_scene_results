@@ -9,29 +9,29 @@ filePattern2 = fullfile(folder2,'*.jpg');
 theFiles1 = dir(filePattern1);
 theFiles2 = dir(filePattern2);
 
-quantile_ranges = [0.7 1; 0.8 1; 0.9 1]; % set possible quantile ranges
+quantile_ranges = [0.7 1; 0.8 1; 0.95 1]; % set possible quantile ranges
 
-for i = 1:20
+for i = 1:1
     % read sample image
     cong = imread(fullfile(folder1,theFiles1(i).name)); 
     incong = imread(fullfile(folder2,theFiles2(i).name));
 
      % compute difference matrix between congruent and incongruent images
     difference = sum(abs(cong-incong),3);
-    temp = difference(difference>0);
+    %temp = difference(difference>0);
 
     for q = 1:3
-        current_quantile = quantile(temp,quantile_ranges(q,:));
-        [row,column] = find(difference > current_quantile(:,1) & difference < current_quantile(:,2)); % find the area of difference, by returning the row and column indices of pixels within that area 
-
+        current_quantile = quantile(difference,quantile_ranges(q,:),'all');
+        [row,column] = find(difference > current_quantile(1,:) & difference < current_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
+        object_boundary = boundary(row,column);
+        
         % mark critical object on congruent
         ax1= axes('Position',[0.015+(q-1).*0.3 0.52 0.3 0.3]); 
         image(ax1,cong);
         axis square
 
         hold on
-        plot(ax1,[min(column) max(column) max(column) min(column) min(column)],...
-            [max(row) max(row) min(row) min(row) max(row)],'r-','LineWidth',1.4);
+        plot(ax1,column(object_boundary),row(object_boundary),'r-','LineWidth',1.2);
         hold off
 
         set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
@@ -44,8 +44,7 @@ for i = 1:20
         axis square
 
         hold on
-        plot(ax2,[min(column) max(column) max(column) min(column) min(column)],...
-            [max(row) max(row) min(row) min(row) max(row)],'r-','LineWidth',1.4);
+        plot(ax2,column(object_boundary),row(object_boundary),'r-','LineWidth',1.2);
         hold off
         set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
         xticks([]),yticks([]);
@@ -54,15 +53,15 @@ for i = 1:20
 
 % save image
 
-if i < 10
-    filename = ['img_0', num2str(i),'.jpg'];
-else
-    filename = ['img_', num2str(i), '.jpg'];
-end
-saveas(gcf,filename);
+% if i < 10
+%     filename = ['img_0', num2str(i),'.jpg'];
+% else
+%     filename = ['img_', num2str(i), '.jpg'];
+% end
+% saveas(gcf,filename);
 
-if i<20
- clf;
-end
-clear temp
+% if i<20
+%  clf;
+% end
+% clear temp
 end
