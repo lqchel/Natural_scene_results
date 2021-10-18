@@ -153,53 +153,54 @@ for img = 1:max(img_id)
     b = b+1;
     
 end
-subplot(1,3,1)
+
+subplot(2,3,1)
 [r,p] = corrcoef(weibull_stat(:,2),cong_delta.delta);
 scatter(weibull_stat(:,2),cong_delta.delta);
 h1 = lsline;
 h1.Color = 'r';
 h1.LineWidth = 1.2;
-title(['Congruent images, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2)) '*']);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 180]);
 xlabel('Weibull Scale Parameter');
-ylabel('tDxC');
+ylabel(['\Delta' 'Cong']);
 
-subplot(1,3,2)
+subplot(2,3,2)
 [r,p] = corrcoef(weibull_stat(:,3),incong_delta.delta);
 scatter(weibull_stat(:,3),incong_delta.delta)
 h2 = lsline;
 h2.Color = 'r';
 h2.LineWidth = 1.2;
-title(['Incongruent images, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 180]);
 xlabel('Weibull Scale Parameter');
-ylabel('tDxC');
+ylabel(['\Delta' 'Incong']);
 
-subplot(1,3,3)
-scatter([weibull_stat(:,2); weibull_stat(:,3)], [cong_delta.delta; incong_delta.delta]);
+subplot(2,3,3)
+scatter(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
 h3 = lsline;
 h3.Color = 'r';
 h3.LineWidth = 1.2;
-[r,p] = corrcoef([weibull_stat(:,2); weibull_stat(:,3)], [cong_delta.delta; incong_delta.delta]);
-title(['All images, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+[r,p] = corrcoef(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
+title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 180]);
 xlabel('Weibull Scale Parameter');
-ylabel('tDxC');
+ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
 
 %%%% plot beta and gemma values of weibull distribution
 
-scatter(dist_values(:,1),dist_values(:,2));
-h4 = lsline;
-h4.Color = 'r';
-h4.LineWidth = 1.2;
-[r,p] = corrcoef(dist_values(:,1),dist_values(:,2));
-title(['r = ' num2str(round(r(1,2),2)) ', p < .0001']);
-set(gca,'FontName','Arial','FontSize',12);
-xlabel('Scale (Beta)');
-ylabel('Shape (Gamma)');
+% scatter(dist_values(:,1),dist_values(:,2));
+% h4 = lsline;
+% h4.Color = 'r';
+% h4.LineWidth = 1.2;
+% [r,p] = corrcoef(dist_values(:,1),dist_values(:,2));
+% title(['r = ' num2str(round(r(1,2),2)) ', p < .0001']);
+% set(gca,'FontName','Arial','FontSize',12);
+% xlabel('Scale (Beta)');
+% ylabel('Shape (Gamma)');
 
 %% plot original color image, gradient magnitude image, histogram and fitted weibull distribution
 
@@ -240,41 +241,41 @@ for img = 1:length(img_id)
 end
 
 
-subplot(1,3,1)
-[r,p] = corrcoef(object_size(:,2),cong_delta.delta);
-scatter(object_size(:,2),cong_delta.delta);
-h1 = lsline;
-h1.Color = 'r';
-h1.LineWidth = 1.2;
-title(['Congruent, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 0.9]);
-xlabel('Critical object size (% in image)');
-ylabel('\Delta tDxC');
-
-subplot(1,3,2)
-[r2,p2] = corrcoef(object_size(:,2),incong_delta.delta);
-scatter(object_size(:,2),incong_delta.delta);
-h2 = lsline;
-h2.Color = 'r';
-h2.LineWidth = 1.2;
-title(['Incongruent, r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2))]);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 0.9]);
-xlabel('Critical object size (% in image)');
-ylabel('\Delta tDxC');
-
-subplot(1,3,3)
-scatter([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
-h3 = lsline;
-h3.Color = 'r';
-h3.LineWidth = 1.2;
-[r3,p3] = corrcoef([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
-title(['All images, r = ' num2str(round(r3(1,2),2)) ', p = ' num2str(round(p3(1,2),2))]);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 0.9]);
-xlabel('Critical object size (% in image)');
-ylabel('\Delta tDxC');
+% subplot(2,3,1)
+% [r,p] = corrcoef(object_size(:,2),cong_delta.delta);
+% scatter(object_size(:,2),cong_delta.delta);
+% h1 = lsline;
+% h1.Color = 'r';
+% h1.LineWidth = 1.2;
+% title(['Congruent, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+% set(gca,'FontName','Arial','FontSize',12);
+% ylim([-4 6]),xlim([0 0.9]);
+% xlabel('Critical object size (% in image)');
+% ylabel('\Delta' 'tDxC');
+% 
+% subplot(2,3,2)
+% [r2,p2] = corrcoef(object_size(:,2),incong_delta.delta);
+% scatter(object_size(:,2),incong_delta.delta);
+% h2 = lsline;
+% h2.Color = 'r';
+% h2.LineWidth = 1.2;
+% title(['Incongruent, r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2))]);
+% set(gca,'FontName','Arial','FontSize',12);
+% ylim([-4 6]),xlim([0 0.9]);
+% xlabel('Critical object size (% in image)');
+% ylabel('\Delta tDxC');
+% 
+% subplot(2,3,3)
+% scatter([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
+% h3 = lsline;
+% h3.Color = 'r';
+% h3.LineWidth = 1.2;
+% [r3,p3] = corrcoef([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
+% title(['All images, r = ' num2str(round(r3(1,2),2)) ', p = ' num2str(round(p3(1,2),2))]);
+% set(gca,'FontName','Arial','FontSize',12);
+% ylim([-4 6]),xlim([0 0.9]);
+% xlabel('Critical object size (% in image)');
+% ylabel('\Delta tDxC');
 
 % 
 % 
@@ -289,7 +290,7 @@ for img = 1:length(img_id)
     % subtracting incongruent image from congruent image, and get the
     % absolute value - imshow this matrix will reveal the area of change
     
-%     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
+     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
      for condition = 1:2
         % load and resize image to square shape, convert to grayscale
         if condition == 1
@@ -321,21 +322,76 @@ for img = 1:length(img_id)
     b = b+1;
     
 end
+ 
+subplot(2,3,4)
+[r,p] = corrcoef(saliency_stat(:,2),cong_delta.delta);
+scatter(saliency_stat(:,2),cong_delta.delta);
+h1 = lsline;
+h1.Color = 'r';
+h1.LineWidth = 1.2;
+title(['r = ' num2str(round(r(1,2),2)) ', p < .0001***']);
+set(gca,'FontName','Arial','FontSize',12);
+ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+xlabel('|\DeltaSaliency(Cong - Incong)|');
+ylabel(['\Delta' 'Cong']);
 
-[r,p] = corrcoef(saliency_stat(:,2),cong_delta.delta)
-[r,p] = corrcoef(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2))
-scatter(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2))
+subplot(2,3,5)
+[r2,p2] = corrcoef(saliency_stat(:,2),incong_delta.delta);
+scatter(saliency_stat(:,2),incong_delta.delta);
+h2 = lsline;
+h2.Color = 'r';
+h2.LineWidth = 1.2;
+title(['r = ' num2str(round(r2(1,2),2)) ', p < .0001***']);
+set(gca,'FontName','Arial','FontSize',12);
+ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+xlabel('|\DeltaSaliency(Cong - Incong)|');
+ylabel(['\Delta' 'Incong']);
+
+subplot(2,3,6)
+[r3,p3] = corrcoef(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2))
+scatter(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2));
+h3 = lsline;
+h3.Color = 'r';
+h3.LineWidth = 1.2;
+title(['r = ' num2str(round(r3(1,2),2)) ', p < .0001***']);
+set(gca,'FontName','Arial','FontSize',12);
+ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+xlabel('|\DeltaSaliency(Cong - Incong)|');
+ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
 
 
 %% plotting images and saliency
-images{1} = imresize(imread(fullfile(folder1,theFiles1(1).name)),[150 150]);
-images{2} = imresize(imread(fullfile(folder2,theFiles2(1).name)),[150 150]);
-images{3} = abs(cong - incong);
-images_title = {'Congruent','Incongruent','Difference Image'};
+for img = 1:2
+images{1} = imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]);
+images{2} = imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
+images{3} = abs(images{1} - images{2});
+images_title = {'Congruent','Incongruent','|\Delta(Cong - Incong)|'};
+rgb_difference = sum(images{3},3);
+rgb_diff_quantile = quantile(rgb_difference, [0.95 1],  'all');
+[row1,column1] = find(rgb_difference > rgb_diff_quantile(1,:) & rgb_difference < rgb_diff_quantile(2,:));
+object_boundary = boundary(row1,column1);
 
-% saliency map
+figure;
+for condition = 1:3
+% original + difference images
+ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
+image(ax1,images{condition});
+% if condition == 3
+%     hold on
+%     plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
+%     hold off
+% end
+axis square
+
+set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+xticks([]),yticks([]);
+title(images_title{condition});
+end
+
+% get saliency map
+final_salmap = [];
 for congruence = 1:2
-    current_img = initializeImage(load_img{congruence});
+    current_img = initializeImage(images{congruence});
     params = defaultSaliencyParams;
     salmap = makeSaliencyMap(current_img,params);
     bigMap = imresize(salmap.data,current_img.size(1:2));
@@ -343,24 +399,28 @@ for congruence = 1:2
 end
 sal_difference = abs(final_salmap{1}-final_salmap{2});
 sal_quantile = quantile(sal_difference, [0.95 1],  'all');
+final_salmap{3} = sal_difference;
 
+% plot saliency map and difference image
+[row2,column2] = find(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
+sal_boundary = boundary(row2,column2);
+stat = sum(sal_difference(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)));
+disp(round(stat,0))
 for condition = 1:3
-% original + difference images
-rgb_difference = sum(images{3},3);
-current_quantile = quantile(rgb_difference,[0.95 1],'all');
-ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
-image(ax1,images{condition});
-axis square
-set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-xticks([]),yticks([]);
-title(images_title{condition});
-
-% saliency map
-[row,column] = find(rgb_difference > current_quantile(1,:) & rgb_difference < current_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
-object_boundary = boundary(row,column);
+    ax2 = axes('Position',[0.015+(condition-1).*0.3 0.1 0.3 0.3]);
+    image(ax2,final_salmap{condition});
+    colormap gray
+    if condition == 3
+        hold on
+        plot(ax2,column2(sal_boundary),row2(sal_boundary),'r-','LineWidth',1.2);
+        hold off
+    end
+    axis square
+    set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+    xticks([]),yticks([]);
+    title(images_title{condition});
 end
-
-
+end
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),max(img_id));
