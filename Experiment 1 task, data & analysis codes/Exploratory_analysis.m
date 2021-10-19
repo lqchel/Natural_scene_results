@@ -285,6 +285,7 @@ end
 %%%% download link: http://www.saliencytoolbox.net/doc/index.html
 
 b = 1;
+final_salmap = [];
 for img = 1:length(img_id) 
     % get difference matrix between congruent and incongruent images, by
     % subtracting incongruent image from congruent image, and get the
@@ -315,10 +316,12 @@ for img = 1:length(img_id)
 % %         clear crit_object_area
 % %         clear crit_object_saliency
 
-    difference = abs(final_salmap(:,:,1)-final_salmap(:,:,2));
+    difference = sum(difference_mat,3);
     range = quantile(difference, [0.95 1],  'all');
-    accepted_difference = difference(difference>range(1,:) & difference < range(2,:));
-    saliency_stat(b,:) = [img sum(accepted_difference)];
+    [x,y] = find(difference>range(1,:) & difference < range(2,:));
+    saliency_difference = abs(final_salmap(:,:,2) - final_salmap(:,:,1));
+    accepted_difference = saliency_difference(x,y);
+    saliency_stat(b,:) = [img sum(accepted_difference,'all')];
     b = b+1;
     
 end
@@ -329,7 +332,7 @@ scatter(saliency_stat(:,2),cong_delta.delta);
 h1 = lsline;
 h1.Color = 'r';
 h1.LineWidth = 1.2;
-title(['r = ' num2str(round(r(1,2),2)) ', p < .0001***']);
+title(['r = ' num2str(round(r(1,2),2)) ', p = .0001**']);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
@@ -341,7 +344,7 @@ scatter(saliency_stat(:,2),incong_delta.delta);
 h2 = lsline;
 h2.Color = 'r';
 h2.LineWidth = 1.2;
-title(['r = ' num2str(round(r2(1,2),2)) ', p < .0001***']);
+title(['r = ' num2str(round(r2(1,2),2)) ', p = .01*']);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
@@ -361,6 +364,7 @@ ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
 
 
 %% plotting images and saliency
+final_salmap = [];
 for img = 1:2
 images{1} = imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]);
 images{2} = imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
@@ -398,13 +402,14 @@ for congruence = 1:2
     final_salmap{congruence} = 255*mat2gray(bigMap); %% here convert the saliency map to grayscale image
 end
 sal_difference = abs(final_salmap{1}-final_salmap{2});
-sal_quantile = quantile(sal_difference, [0.95 1],  'all');
+% sal_quantile = quantile(sal_difference, [0.95 1],  'all');
 final_salmap{3} = sal_difference;
 
-% plot saliency map and difference image
-[row2,column2] = find(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
-sal_boundary = boundary(row2,column2);
-stat = sum(sal_difference(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)));
+% % plot saliency map and difference image
+
+% [row2,column2] = find(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
+% sal_boundary = boundary(row2,column2);
+stat = sum(sal_difference(row1,column1),'all');
 disp(round(stat,0))
 for condition = 1:3
     ax2 = axes('Position',[0.015+(condition-1).*0.3 0.1 0.3 0.3]);
@@ -412,7 +417,7 @@ for condition = 1:3
     colormap gray
     if condition == 3
         hold on
-        plot(ax2,column2(sal_boundary),row2(sal_boundary),'r-','LineWidth',1.2);
+        plot(ax2,column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
         hold off
     end
     axis square
