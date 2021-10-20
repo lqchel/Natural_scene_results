@@ -426,6 +426,33 @@ for condition = 1:3
     title(images_title{condition});
 end
 end
+
+%% analyse and plot image statistics vs. variance in congruence effects
+
+% weibull
+[r1,p1] = corrcoef(mean(weibull_stat(:,2:3),2),abs(cong_delta.delta-incong_delta.delta));
+subplot(1,2,1),scatter(mean(weibull_stat(:,2:3),2),abs(cong_delta.delta-incong_delta.delta));
+h1 = lsline;
+h1.Color = 'r';
+h1.LineWidth = 1.2;
+title(['r = ' num2str(round(r1(1,2),2)) ', p = ' num2str(round(p1(1,2),2))]);
+set(gca,'FontName','Arial','FontSize',12);
+ylim([0 6]),xlim([0 180]);
+xlabel('Mean(Cong Weibull + Incong Weibull)');
+ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
+
+% saliency
+[r2,p2] = corrcoef(saliency_stat(:,2),abs(cong_delta.delta-incong_delta.delta));
+subplot(1,2,2), scatter(saliency_stat(:,2),abs(cong_delta.delta-incong_delta.delta));
+h2 = lsline;
+h2.Color = 'r';
+h2.LineWidth = 1.2;
+title(['r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2)) '*']);
+set(gca,'FontName','Arial','FontSize',12);
+ylim([0 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+xlabel('|\DeltaSaliency(Cong - Incong)|');
+ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
+
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),max(img_id));
