@@ -1,5 +1,6 @@
 %% get data
 % Results = importdata('Pooled Results 2.mat'); 
+addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results');
 Results = importdata('Exp2_data.mat');
 Results = Results(Results(:,11)~=0,:);
 Results(:,9) = Results(:,9) - 0.5;
@@ -114,6 +115,10 @@ for img = 1:length(img_id)
     clear temp2
 end
 
+c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
+c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
+c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
+c_y_i_y = cong_delta.significance < 0.05 & incong_delta.significance < 0.05;
 %% calculate weibull statistics
 
 %%%%%%%% weibull parameters for image contrast
@@ -187,7 +192,7 @@ h3.LineWidth = 1.2;
 title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 180]);
-xlabel('Weibull Scale Parameter');
+xlabel('Mean Weibull Scale Parameter');
 ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
 
 %%%% plot beta and gemma values of weibull distribution
@@ -232,8 +237,10 @@ b = 1;
 for img = 1:length(img_id) 
 
     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
-    difference_mat = sum(difference_mat,3);
-    current_object_size = sum(sum(difference_mat > 0))/150^2;   
+    difference = sum(difference_mat,3);
+    range = quantile(difference, [0.95 1],  'all');
+%     [x,y] = find(difference>range(1,:) & difference < range(2,:));
+    current_object_size = sum(sum(difference>range(1,:) & difference < range(2,:)))/150^2;   
     object_size(b,:) = [img current_object_size];
     clear current_object_size
     clear difference_mat
@@ -283,9 +290,10 @@ end
 %% calculate sailiency difference statistics for each image
 %%%% require SaliencyToolbox 2.3 by Itti et al
 %%%% download link: http://www.saliencytoolbox.net/doc/index.html
-
+addpath('C:\Users\liang\Documents\Experiment Codes\SaliencyToolbox');
 b = 1;
 final_salmap = [];
+saliency_stat = [];
 for img = 1:length(img_id) 
     % get difference matrix between congruent and incongruent images, by
     % subtracting incongruent image from congruent image, and get the
@@ -319,9 +327,11 @@ for img = 1:length(img_id)
     difference = sum(difference_mat,3);
     range = quantile(difference, [0.95 1],  'all');
     [x,y] = find(difference>range(1,:) & difference < range(2,:));
-    saliency_difference = abs(final_salmap(:,:,2) - final_salmap(:,:,1));
+    saliency_difference = final_salmap(:,:,1) - final_salmap(:,:,2);
+%     mean_saliency = mean(final_salmap, 3);
     accepted_difference = saliency_difference(x,y);
-    saliency_stat(b,:) = [img sum(accepted_difference,'all')];
+%     accepted_mean = mean_saliency(x,y);
+    saliency_stat(b,:) = [img sum(abs(accepted_difference),'all') sum(accepted_difference,'all')];
     b = b+1;
     
 end
@@ -380,11 +390,9 @@ for condition = 1:3
 % original + difference images
 ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
 image(ax1,images{condition});
-% if condition == 3
-%     hold on
-%     plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
-%     hold off
-% end
+hold on
+plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
+hold off
 axis square
 
 set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
@@ -430,29 +438,42 @@ end
 %% analyse and plot image statistics vs. variance in congruence effects
 
 % weibull
-[r1,p1] = corrcoef(mean(weibull_stat(:,2:3),2),abs(cong_delta.delta-incong_delta.delta));
-subplot(1,2,1),scatter(mean(weibull_stat(:,2:3),2),abs(cong_delta.delta-incong_delta.delta));
+[r1,p1] = corrcoef(abs(weibull_stat(:,2)-weibull_stat(:,3)),abs(cong_delta.delta-incong_delta.delta));
+subplot(1,2,1),scatter(abs(weibull_stat(:,2)-weibull_stat(:,3)),abs(cong_delta.delta-incong_delta.delta));
 h1 = lsline;
 h1.Color = 'r';
 h1.LineWidth = 1.2;
 title(['r = ' num2str(round(r1(1,2),2)) ', p = ' num2str(round(p1(1,2),2))]);
 set(gca,'FontName','Arial','FontSize',12);
-ylim([0 6]),xlim([0 180]);
-xlabel('Mean(Cong Weibull + Incong Weibull)');
+ylim([0 6]),xlim([0 30]);
+xlabel('|\DeltaWeibull(Cong - Incong)|');
 ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
 
 % saliency
-[r2,p2] = corrcoef(saliency_stat(:,2),abs(cong_delta.delta-incong_delta.delta));
-subplot(1,2,2), scatter(saliency_stat(:,2),abs(cong_delta.delta-incong_delta.delta));
+[r2,p2] = corrcoef(saliency_stat(:,3),cong_delta.delta-incong_delta.delta);
+subplot(1,2,2), scatter(saliency_stat(:,3),cong_delta.delta-incong_delta.delta);
 h2 = lsline;
 h2.Color = 'r';
 h2.LineWidth = 1.2;
 title(['r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2)) '*']);
 set(gca,'FontName','Arial','FontSize',12);
-ylim([0 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+ylim([0 6])%xlim([0 max(saliency_stat(:,3))+ 10000]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
 ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
-
+% 
+% data = table(mean(weibull_stat(:,2:3),2), mean(weibull_stat(:,2:3),2)^2,abs(cong_delta.delta-incong_delta.delta),img_id,'VariableNames',{'W1','W2','delta','image'});
+% lm1 = fitlme(data,'delta ~ W1^2 + (1|W1)')
+% weibull
+% 
+% data1 = table(saliency_stat(:,3)/10^7,(saliency_stat(:,3)/10^7).^2, abs(cong_delta.delta-incong_delta.delta),img_id,'VariableNames',{'Saliency','Saliency2','delta','image'});
+% lm2 = fitlme(data1,'delta ~ Saliency^2 + (1|Saliency)')
+% qua_s = fitlme(data1,'delta ~ Saliency + (1|Saliency)')
+% lin_s = fitlme(data1,'delta ~ Saliency2 + (1|Saliency)')
+% compare(qua_s,lm2)
+% compare(lin_s,lm2)
+% 
+data2 = table(saliency_stat(:,3),cong_delta.delta-incong_delta.delta,'VariableNames',{'Saliency','delta'})
+lm3 = fitlme(data2,'delta ~ Saliency + (1|Saliency)')
 %% plot results plotting the lines
 colours = cbrewer('qual', 'Set1', 8);
 [Y1,edges] = histcounts(delta_1(:,1),max(img_id));
@@ -486,80 +507,89 @@ for img = 1:max(img_id)
     for kk = 1:num_pch
         temp_array(kk) = img_path_list(kk).name(length(img_path_list(kk).name)-4);
     end
-    c(img) = find(temp_array == 'p'); %%Find the CP position of the image
+    c(img,1) = find(temp_array == 'p'); %%Find the CP position of the image
 end
 
-[delta_1_x,rank1] = sort(delta_1(:,1),'descend');
-% [delta_2_x,rank2] = sort(delta_2(:,1),'descend');
+[delta_1_0,rank1] = sort(delta_1(:,1),'descend');
+delta_1_x = [delta_1_0 delta_1(rank1,2) delta_1(rank1,3) c(rank1,1)];
+delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3) c(rank1,1)];
 
+cong_list =  {delta_1_x(c_n_i_n(rank1,1),:); delta_1_x(c_n_i_y(rank1,1),:);delta_1_x(c_y_i_n(rank1,1),:);delta_1_x(c_y_i_y(rank1,1),:)};
+incong_list = {delta_2_x(c_n_i_n(rank1,1),:); delta_2_x(c_n_i_y(rank1,1),:);delta_2_x(c_y_i_n(rank1,1),:);delta_2_x(c_y_i_y(rank1,1),:)};
 
-delta_1_x = [delta_1_x delta_1(rank1,2) delta_1(rank1,3)];
-delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3)];
-
-delta_1_x = [delta_1_x(:,1:3) c(rank1,1)];
-delta_2_x = [delta_2_x(:,1:3) c(rank1,1)];
-
-% display (axis definition [left bottom width height])
+addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer');
+colours = cbrewer('qual','Pastel2',8);
+figure_colours = [1 1 1; colours(2,:); colours(3,:); colours(8,:)];
 
 %congruent
-for i = 1:28
+for category = 1:4
+    current_cong_list = cong_list{category,1};
+    current_incong_list = incong_list{category,1};
+    if round(length(current_cong_list(:,1)),-1) > length(current_cong_list(:,1))
+        big_img_num = round(length(current_cong_list(:,1)),-1)/5;
+    else
+        big_img_num = 1;
+    end    
+    
+for i = 1:big_img_num
+    f = figure('Color',figure_colours(category,:));
+    set(gcf,'InvertHardCopy','off');
 for p = 1:5
-    current_cong= imresize(imread(fullfile(folder1,theFiles1(delta_1_x((i-1).*5+p,2)).name)),[150 150]); % load and resize image to square shape
+    current_cong= imresize(imread(fullfile(folder1,theFiles1(current_cong_list((i-1).*5+p,2)).name)),[150 150]); % load and resize image to square shape
     ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]); % fix axes position in figure window
     image(ax1,current_cong); % present image
     
     % mark out the critical objects
     hold on
-    if delta_1_x((i-1).*5+p,4) == 1
+    if current_cong_list((i-1).*5+p,4) == 1
         % outline the critical object on the image in red, using the x and y
         % coordinates of the object area
         plot(ax1,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2); 
-    elseif delta_1_x((i-1).*5+p,4) == 2
+    elseif current_cong_list((i-1).*5+p,4) == 2
         plot(ax1,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 3
+    elseif current_cong_list((i-1).*5+p,4) == 3
         plot(ax1,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 4
+    elseif current_cong_list((i-1).*5+p,4) == 4
         plot(ax1,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 5
+    elseif current_cong_list((i-1).*5+p,4) == 5
         plot(ax1,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 6
+    elseif current_cong_list((i-1).*5+p,4) == 6
         plot(ax1,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 7
+    elseif current_cong_list((i-1).*5+p,4) == 7
         plot(ax1,[1 50 50 1 0],[150 150 100 100 150],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 8
+    elseif current_cong_list((i-1).*5+p,4) == 8
         plot(ax1,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
     else
         plot(ax1,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
     end
     hold off
     axis square
-    title({['d cong = ', num2str(round(delta_1_x((i-1).*5 + p,1)),1),'[',num2str(delta_1_x((i-1).*5 + p,3)),']'],...
-        ['d incong = ', num2str(round(delta_2_x((i-1).*5 + p,1),1)),'[',num2str(delta_1_x((i-1).*5 + p,3)),']']});
+    title({['d cong = ', num2str(round(current_cong_list((i-1).*5 + p,1)),1),'[',num2str(current_cong_list((i-1).*5 + p,3)),']'],...
+        ['d incong = ', num2str(round(current_incong_list((i-1).*5 + p,1),1)),'[',num2str(current_incong_list((i-1).*5 + p,3)),']']});
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
     
-    
-    current_incong= imresize(imread(fullfile(folder2,theFiles2(delta_1_x((i-1).*5+p,2)).name)),[150 150]);
+    current_incong= imresize(imread(fullfile(folder2,theFiles2(current_cong_list((i-1).*5+p,2)).name)),[150 150]);
     ax2= axes('Position',[0.015+(p-1).*0.19 0.3 0.2 0.2]);
     image(ax2,current_incong);
     
     % mark out the critical objects
     hold on
-    if delta_1_x((i-1).*5+p,4) == 1
+    if current_cong_list((i-1).*5+p,4) == 1
         plot(ax2,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 2
+    elseif current_cong_list((i-1).*5+p,4) == 2
         plot(ax2,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 3
+    elseif current_cong_list((i-1).*5+p,4) == 3
         plot(ax2,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 4
+    elseif current_cong_list((i-1).*5+p,4) == 4
         plot(ax2,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 5
+    elseif current_cong_list((i-1).*5+p,4) == 5
         plot(ax2,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 6
+    elseif current_cong_list((i-1).*5+p,4) == 6
         plot(ax2,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 7
+    elseif current_cong_list((i-1).*5+p,4) == 7
         plot(ax2,[1 50 50 1 1],[150 150 100 100 150],'r-','LineWidth',1.2);
-    elseif delta_1_x((i-1).*5+p,4) == 8
+    elseif current_cong_list((i-1).*5+p,4) == 8
         plot(ax2,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
     else
         plot(ax2,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
@@ -569,21 +599,27 @@ for p = 1:5
     set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
     
-    if i == 28 && p == 1
+    if (i-1).*5+p+1 > length(current_cong_list(:,1))
         break
     end
 end
-
-    if i < 10
-        filename = ['cong_0', num2str(i),'.jpg'];
+    if category == 1 && i == 1
+        id = i;
     else
-        filename = ['cong_', num2str(i), '.jpg'];
+        id = id+1;
+    end
+    if id < 10
+        filename = ['cong_0', num2str(id),'.jpg'];
+    else
+        filename = ['cong_', num2str(id), '.jpg'];
     end
     saveas(gcf,filename);
-clf;
+% if big_img_num ~= 2
+ close(f);
+% end
 end
 
-
+end
 %%
 %incongruent
 for i = 1:16
