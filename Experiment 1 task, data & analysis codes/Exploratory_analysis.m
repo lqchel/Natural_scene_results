@@ -64,6 +64,7 @@ for img = 1:length(img_id)
     delta_1(img,3) = col_length;
     [h,delta_1(img,4)] = ttest(temp,0); 
     delta_1(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,13));
+    delta_1(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,7));
     clear temp
     clear col_length
 end
@@ -83,14 +84,14 @@ for img = 1:length(img_id)
     %condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
     [h,delta_2(img,4)] = ttest(temp,0);
     delta_2(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,13));
-
+    delta_2(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,7));
     clear temp
 end
 
 %%%%%%%%%%%%%%%%%% tDxC tables for each condition %%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),delta_1(:,5),'VariableNames',{'delta','img','num_sub','significance','eccentricity'});
-incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),delta_1(:,5),'VariableNames',{'delta','img','num_sub','significance','eccentricity'});
+cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
+incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
 
 
 %% compare delta between conditions
@@ -159,41 +160,55 @@ for img = 1:max(img_id)
     
 end
 
-subplot(2,3,1)
-[r,p] = corrcoef(weibull_stat(:,2),cong_delta.delta);
-scatter(weibull_stat(:,2),cong_delta.delta);
-h1 = lsline;
-h1.Color = 'r';
-h1.LineWidth = 1.2;
-title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2)) '*']);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 180]);
-xlabel('Weibull Scale Parameter');
-ylabel(['\Delta' 'Cong']);
+data_w = table([cong_delta.delta; incong_delta.delta],[weibull_stat(:,2);weibull_stat(:,2)],categorical([ones(length(img_id),1); 1+ones(length(img_id),1)]),'VariableNames',...
+    {'delta','weibull','congruence'});
+lm1 = fitlme(data_w,'delta~weibull*congruence + (1|weibull) + (1|congruence)')
+lm_w = fitlme(data_w,'delta ~ weibull:congruence + congruence + (1|weibull) + (1|congruence)')
+lm_c = fitlme(data_w,'delta ~ weibull:congruence + weibull +  (1|weibull) + (1|congruence)')
+lm_in = fitlme(data_w,'delta ~ weibull + congruence + (1|weibull) + (1|congruence)')
 
-subplot(2,3,2)
-[r,p] = corrcoef(weibull_stat(:,3),incong_delta.delta);
-scatter(weibull_stat(:,3),incong_delta.delta)
-h2 = lsline;
-h2.Color = 'r';
-h2.LineWidth = 1.2;
-title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 180]);
-xlabel('Weibull Scale Parameter');
-ylabel(['\Delta' 'Incong']);
+weibull_effect = compare(lm_w, lm1)
+congruence_effect = compare(lm_c,lm1)
+interaction_effect = compare(lm_in,lm1)
 
-subplot(2,3,3)
-scatter(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
-h3 = lsline;
-h3.Color = 'r';
-h3.LineWidth = 1.2;
-[r,p] = corrcoef(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
-title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+subplot(1,2,1)
+dot_colours = cbrewer('qual','Set2',8);
+line_colour = cbrewer('qual','Set1',8);
+w_effects = fixedEffects(lm1);
+scatter(weibull_stat(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
+hold on
+scatter(weibull_stat(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
+plot([0 180],[w_effects(1,:) 180.*w_effects(2,:) + w_effects(1,:)],'Color',line_colour(1,:),'LineWidth',2);
+hold off
 set(gca,'FontName','Arial','FontSize',12);
 ylim([-4 6]),xlim([0 180]);
-xlabel('Mean Weibull Scale Parameter');
-ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
+xlabel('Weibull Scale Parameter Value');
+ylabel('\DeltatDxC');
+legend({'Congruent','Incongruent','Effect of Weibull'})
+
+% subplot(2,3,2)
+% [r,p] = corrcoef(weibull_stat(:,3),incong_delta.delta);
+% scatter(weibull_stat(:,3),incong_delta.delta)
+% h2 = lsline;
+% h2.Color = 'r';
+% h2.LineWidth = 1.2;
+% title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+% set(gca,'FontName','Arial','FontSize',12);
+% ylim([-4 6]),xlim([0 180]);
+% xlabel('Weibull Scale Parameter');
+% ylabel(['\Delta' 'Incong']);
+% 
+% subplot(2,3,3)
+% scatter(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
+% h3 = lsline;
+% h3.Color = 'r';
+% h3.LineWidth = 1.2;
+% [r,p] = corrcoef(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
+% title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
+% set(gca,'FontName','Arial','FontSize',12);
+% ylim([-4 6]),xlim([0 180]);
+% xlabel('Mean Weibull Scale Parameter');
+% ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
 
 %%%% plot beta and gemma values of weibull distribution
 
@@ -234,19 +249,43 @@ end
 %% calculate critical object sizes
 
 b = 1;
+figure;
 for img = 1:length(img_id) 
 
     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
+    images = {imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150])};
     difference = sum(difference_mat,3);
-    range = quantile(difference, [0.95 1],  'all');
+    range = quantile(difference, [0.90 1],  'all');
 %     [x,y] = find(difference>range(1,:) & difference < range(2,:));
-    current_object_size = sum(sum(difference>range(1,:) & difference < range(2,:)))/150^2;   
+    current_object_size = sum(sum(difference>range(1,:) & difference <= range(2,:)))/150^2;   
     object_size(b,:) = [img current_object_size];
+    b = b+1;
+    
+    for condition = 1:2
+    % original + difference images
+    [row1,column1] = find(difference > range(1,:) & difference < range(2,:));
+    object_boundary = boundary(row1,column1);
+    ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
+    image(ax1,images{condition});
+    hold on
+    plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
+    hold off
+    axis square
+    set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+    title(['size = ' num2str(current_object_size)])
+    xticks([]),yticks([]);
+    pause(1)
+    end
+    clf;
+    
     clear current_object_size
     clear difference_mat
-    b = b+1;
+
+    
 end
 
+% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(img_id),1); 1+ones(length(img_id),1)]),'VariableNames',{'delta','size','congruence'});
+% lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
 
 % subplot(2,3,1)
 % [r,p] = corrcoef(object_size(:,2),cong_delta.delta);
@@ -256,9 +295,9 @@ end
 % h1.LineWidth = 1.2;
 % title(['Congruent, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
 % set(gca,'FontName','Arial','FontSize',12);
-% ylim([-4 6]),xlim([0 0.9]);
+% % ylim([-4 6]),xlim([0 0.9]);
 % xlabel('Critical object size (% in image)');
-% ylabel('\Delta' 'tDxC');
+% % ylabel('\Delta' 'tDxC');
 % 
 % subplot(2,3,2)
 % [r2,p2] = corrcoef(object_size(:,2),incong_delta.delta);
@@ -268,9 +307,9 @@ end
 % h2.LineWidth = 1.2;
 % title(['Incongruent, r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2))]);
 % set(gca,'FontName','Arial','FontSize',12);
-% ylim([-4 6]),xlim([0 0.9]);
+% % ylim([-4 6]),xlim([0 0.9]);
 % xlabel('Critical object size (% in image)');
-% ylabel('\Delta tDxC');
+% % ylabel('\Delta tDxC');
 % 
 % subplot(2,3,3)
 % scatter([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
@@ -280,9 +319,9 @@ end
 % [r3,p3] = corrcoef([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
 % title(['All images, r = ' num2str(round(r3(1,2),2)) ', p = ' num2str(round(p3(1,2),2))]);
 % set(gca,'FontName','Arial','FontSize',12);
-% ylim([-4 6]),xlim([0 0.9]);
+% % ylim([-4 6]),xlim([0 0.9]);
 % xlabel('Critical object size (% in image)');
-% ylabel('\Delta tDxC');
+% % ylabel('\Delta tDxC');
 
 % 
 % 
@@ -294,12 +333,13 @@ addpath('C:\Users\liang\Documents\Experiment Codes\SaliencyToolbox');
 b = 1;
 final_salmap = [];
 saliency_stat = [];
+loc_mat = [1 2 3; 4 5 6; 7 8 9];
+
 for img = 1:length(img_id) 
     % get difference matrix between congruent and incongruent images, by
     % subtracting incongruent image from congruent image, and get the
     % absolute value - imshow this matrix will reveal the area of change
     
-     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
      for condition = 1:2
         % load and resize image to square shape, convert to grayscale
         if condition == 1
@@ -324,53 +364,46 @@ for img = 1:length(img_id)
 % %         clear crit_object_area
 % %         clear crit_object_saliency
 
-    difference = sum(difference_mat,3);
-    range = quantile(difference, [0.95 1],  'all');
-    [x,y] = find(difference>range(1,:) & difference < range(2,:));
+    [x,y] = find(loc_mat == cong_delta.location(img,:));
+    range_rows = (x-1).*50+1:x.*50;
+    range_cols = (y-1).*50+1:y.*50;
     saliency_difference = final_salmap(:,:,1) - final_salmap(:,:,2);
 %     mean_saliency = mean(final_salmap, 3);
-    accepted_difference = saliency_difference(x,y);
+    accepted_difference = saliency_difference(range_rows,range_cols);
 %     accepted_mean = mean_saliency(x,y);
     saliency_stat(b,:) = [img sum(abs(accepted_difference),'all') sum(accepted_difference,'all')];
     b = b+1;
     
 end
- 
-subplot(2,3,4)
-[r,p] = corrcoef(saliency_stat(:,2),cong_delta.delta);
-scatter(saliency_stat(:,2),cong_delta.delta);
-h1 = lsline;
-h1.Color = 'r';
-h1.LineWidth = 1.2;
-title(['r = ' num2str(round(r(1,2),2)) ', p = .0001**']);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
-xlabel('|\DeltaSaliency(Cong - Incong)|');
-ylabel(['\Delta' 'Cong']);
+data = table([cong_delta.delta; incong_delta.delta],[saliency_stat(:,2);saliency_stat(:,2)],categorical([ones(length(img_id),1); 1+ones(length(img_id),1)]),'VariableNames',...
+    {'delta','saliency','congruence'});
+lm2 = fitlme(data,'delta~saliency*congruence + (1|saliency) + (1|congruence)');
+lm_s = fitlme(data,'delta~congruence + saliency:congruence + (1|saliency) + (1|congruence)');
+lm_c = fitlme(data,'delta~saliency + saliency:congruence + (1|saliency) + (1|congruence)');
+lm_int = fitlme(data,'delta~saliency + congruence + (1|saliency) + (1|congruence)')
 
-subplot(2,3,5)
-[r2,p2] = corrcoef(saliency_stat(:,2),incong_delta.delta);
-scatter(saliency_stat(:,2),incong_delta.delta);
-h2 = lsline;
-h2.Color = 'r';
-h2.LineWidth = 1.2;
-title(['r = ' num2str(round(r2(1,2),2)) ', p = .01*']);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
-xlabel('|\DeltaSaliency(Cong - Incong)|');
-ylabel(['\Delta' 'Incong']);
+sal_effect = compare(lm_s,lm2)
+cong_effect = compare(lm_c,lm2)
+int_effect = compare(lm_int,lm2)
 
-subplot(2,3,6)
-[r3,p3] = corrcoef(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2))
-scatter(saliency_stat(:,2),mean([cong_delta.delta incong_delta.delta],2));
-h3 = lsline;
-h3.Color = 'r';
-h3.LineWidth = 1.2;
-title(['r = ' num2str(round(r3(1,2),2)) ', p < .0001***']);
+
+subplot(1,2,2)
+dot_colours = cbrewer('qual','Set2',8);
+line_colour = cbrewer('qual','Set1',8);
+s_effects = fixedEffects(lm2);
+s_effects(2,:) = 0.00001;
+x_max = max(saliency_stat(:,2))+10000;
+scatter(saliency_stat(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
+hold on
+scatter(saliency_stat(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
+plot([0 x_max],[s_effects(1,:) x_max.*s_effects(2,:) + s_effects(1,:)],'Color',line_colour(1,:),'LineWidth',2);
+hold off
 set(gca,'FontName','Arial','FontSize',12);
-ylim([-4 6]),xlim([0 max(saliency_stat(:,2))+ 10000]);
+ylim([-4 6]),xlim([0 x_max]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
-ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
+ylabel('\DeltatDxC');
+legend({'Congruent','Incongruent','Effect of Image Stat'})
+
 
 
 %% plotting images and saliency
