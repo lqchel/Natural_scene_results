@@ -1,6 +1,6 @@
 clear all
-
-sub_AUC = AUC_matrix([b1_g2;b1_g4;b2_g1;b2_g4]);
+run('get_data2.m');
+sub_AUC = AUC_matrix(Results,2);
 
 %% analysis on criterion-free measures - hypo1, type 1
 % collapsed across eccentricity, compared against chance
@@ -56,6 +56,10 @@ mean(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2
 mean(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2)== 2,5)), std(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2)== 2,5))/sqrt(240)
 [h1,p1] = ttest(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2)== 2,5),0.5,'alpha', 0.025)
 [h2,p2] = ttest(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2)== 2,5))
+
+[h3,p3] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 0 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 0 & sub_AUC.hypo2_Type1(:,2)== 2,5),'alpha', 0.0167)
+[h4,p4] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 1 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 1 & sub_AUC.hypo2_Type1(:,2)== 2,5),'alpha', 0.0167)
+[h5,p5] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 2 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 2 & sub_AUC.hypo2_Type1(:,2)== 2,5),'alpha', 0.0167)
 
 [h3,p3] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 0 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 1 & sub_AUC.hypo2_Type1(:,2)== 1,5),'alpha', 0.0167)
 [h4,p4] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 1 & sub_AUC.hypo2_Type1(:,2)== 1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== 2 & sub_AUC.hypo2_Type1(:,2)== 1,5),'alpha', 0.0167)

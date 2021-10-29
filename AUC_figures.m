@@ -4,13 +4,16 @@
 
 
 function [out] = AUC_figures(data)
-Results = data(data(:,11)~=0,:); %% exclude catch trials
+% Results = data(data(:,11)~=0,:); %% exclude catch trials
+addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results');
+addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer');
+Results = data;
 num_sub = length(unique(Results(:,1)));
 
 colours = cbrewer('qual','Set1',8);
 subject_id = unique(Results(:,1));
 
-Results(:,9) = Results(:,8).*Results(:,9);
+% Results(:,9) = Results(:,8).*Results(:,9);
 Find_N = Results(:,5) ==1;
 
 location = [0 1 2]; % 0 = fovea, 1 = peripheral (2,4,6,8), 2 = para-peripheral (1,3,7,9)
@@ -146,7 +149,7 @@ end
     ylabel('Objective Type 1 AUC');
     xlabel('Patch location');
     xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-    set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12);
+    set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
     ylim([0.4 1]);
     legend('off');
     title('present vs. null','FontName','Arial');
@@ -345,7 +348,7 @@ end
 ylabel('Objective Type 1 AUC');
 xlabel('Patch location');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12);
+set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 1]);
 title('original vs. modified','FontName','Arial');
 
@@ -437,7 +440,7 @@ end
 
 ylabel('Subjective Type 2 AUC');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12);
+set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 0.9]);
 xlabel('Patch location');
 title('present vs. null','FontName','Arial');
@@ -638,7 +641,7 @@ title('original vs. modified','FontName','Arial');
 ylabel('Subjective Type 2 AUC');
 xlabel('Patch location');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12);
+set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 0.9]);
 
 end
