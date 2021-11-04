@@ -5,7 +5,7 @@
 
 
 function [out] = massive_descriptives(data)
- Results = data(data(:,11)~=0,:);
+Results = data(data(:,11)~=0,:);
 num_sub = length(unique(Results(:,1)));
 Results(:,9) = Results(:,8).*Results(:,9);
 

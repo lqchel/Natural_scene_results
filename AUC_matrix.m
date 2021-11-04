@@ -4,6 +4,7 @@
 
 
 function out = AUC_matrix(data,exp)
+addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer')); % add colour palatte package path
 if exp == 1
     Results = data;
     location1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;

@@ -1,6 +1,6 @@
 %% get data
 % Results = importdata('Pooled Results 2.mat'); 
-addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results');
+addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
 Results = importdata('Exp2_data.mat');
 Results = Results(Results(:,11)~=0,:);
 Results(:,9) = Results(:,9) - 0.5;
@@ -224,67 +224,108 @@ legend({'Congruent','Incongruent','Effect of Weibull'})
 
 %% plot original color image, gradient magnitude image, histogram and fitted weibull distribution
 
-sel_img = [12 1 48 54 97];
+% sel_img = [12 1 48 54 97];
+sel_img = 5;
+figure;
 for i = 1:length(sel_img)
-    current_colour_img =  imresize(imread(fullfile(folder1,theFiles1(sel_img(i)).name)),[150 150]); 
+    current_colour_img =  imresize(imread(fullfile(folder1,theFiles1(sel_img(i)).name)),[150 150]); %%% congruent
     gradient_mag = imgradient(rgb2gray(current_colour_img));
     gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
     pd = fitdist(gradient_vector,'weibull');
-    
-    figure;
-    subplot(1,3,1),imshow(current_colour_img);
-    subplot(1,3,2),imshow(uint8(gradient_mag));
-    subplot(1,3,3);
+    subplot(1,2,1),imshow(uint8(gradient_mag));
+    subplot(1,2,2);
     histogram(gradient_mag,256,'Normalization','pdf')
     hold on
     x = linspace(0,max(gradient_vector));
     plot(x,pdf(pd,x),'LineWidth',3);
     xlim([0 max(gradient_vector)]);
     hold off
-    title(['\beta' ' = ' num2str(round(pd.A,2)) ' \gamma' ' = ' num2str(round(pd.B,2))]);
+    title(['\beta' ' = ' num2str(round(pd.A,2))]);
+    ylabel('Probability');
+    set(gca,'FontName','Arial','FontSize',14)
+    axis square
+end
+
+figure;
+for i = 1:length(sel_img)
+    current_colour_img =  imresize(imread(fullfile(folder2,theFiles2(sel_img(i)).name)),[150 150]); %%% congruent
+    gradient_mag = imgradient(rgb2gray(current_colour_img));
+    gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
+    pd = fitdist(gradient_vector,'weibull');
+    subplot(1,2,1),imshow(uint8(gradient_mag));
+    subplot(1,2,2);
+    histogram(gradient_mag,256,'Normalization','pdf')
+    hold on
+    x = linspace(0,max(gradient_vector));
+    plot(x,pdf(pd,x),'LineWidth',3);
+    xlim([0 max(gradient_vector)]);
+    hold off
+    title(['\beta' ' = ' num2str(round(pd.A,2))]);
     xlabel('Edge Strength'), ylabel('Probability');
+    set(gca,'FontName','Arial','FontSize',14);
     axis square
 end
 
 %% calculate critical object sizes
-
 b = 1;
-figure;
 for img = 1:length(img_id) 
-
-    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]));
-    images = {imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150])};
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
+    images = {imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]) difference_mat};
     difference = sum(difference_mat,3);
-    range = quantile(difference, [0.90 1],  'all');
-%     [x,y] = find(difference>range(1,:) & difference < range(2,:));
-    current_object_size = sum(sum(difference>range(1,:) & difference <= range(2,:)))/150^2;   
+    range = quantile(difference, [0.95 1],  'all');
+    current_object_size = (sum(sum(difference > 100)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
     
+    clear current_object_size
+    clear difference_mat
+end
+
+%% plotting object size examples
+b = 1;
+% selected_img = [2 5 12 34 42 35];
+selected_img = 5;
+ for img = 1:1 %length(selected_img) 
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150]));
+    difference = sum(difference_mat,3);
+    current_object_size = (sum(sum(difference > 100)))/(150^2);   
+    object_size(b,:) = [img current_object_size];
+    b = b+1;
+%     [Y1(img,:),edges(img,:)] = histcounts(difference,150^2);
+    image_titles = {'RGB difference','Detected object area'};
+    figure('Color','white');
+    [row1,column1] = find(difference>100);
     for condition = 1:2
-    % original + difference images
-    [row1,column1] = find(difference > range(1,:) & difference < range(2,:));
-    object_boundary = boundary(row1,column1);
-    ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
-    image(ax1,images{condition});
-    hold on
-    plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
-    hold off
-    axis square
-    set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-    title(['size = ' num2str(current_object_size)])
-    xticks([]),yticks([]);
-    pause(1)
+        ax1= axes('Position',[0.02+(condition-1).*0.45 0.3 0.45 0.45]);
+        image(ax1,difference_mat);
+        if condition == 2
+            hold on
+            scatter(ax1,column1,row1,3,'MarkerFaceColor','red','MarkerEdgeColor','red');
+            hold off
+        end   
+        axis square
+        set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+        xticks([]),yticks([]);
+        title(image_titles{condition});
     end
-    clf;
     
     clear current_object_size
     clear difference_mat
-
-    
 end
 
-% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(img_id),1); 1+ones(length(img_id),1)]),'VariableNames',{'delta','size','congruence'});
+
+
+%%% uncomment for plotting mean RGB difference across image pairs
+% Y1_cumulative  = cumsum(mean(Y1,1));
+% mean_edges = mean(edges,1);
+% figure('Color','white');
+% plot(mean_edges,[Y1_cumulative 150^2],'LineWidth',1.2);
+% xlabel('Mean RGB difference across images'), ylabel('Counts');
+% set(gca,'FontName','Arial','FontSize',14);
+
+
+    
+% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(selected_img),1); 1+ones(length(selected_img),1)]),'VariableNames',{'delta','size','congruence'});
 % lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
 
 % subplot(2,3,1)
@@ -408,7 +449,7 @@ legend({'Congruent','Incongruent','Effect of Image Stat'})
 
 %% plotting images and saliency
 final_salmap = [];
-for img = 1:2
+for img = 1:1
 images{1} = imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]);
 images{2} = imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
 images{3} = abs(images{1} - images{2});
@@ -466,6 +507,12 @@ for condition = 1:3
     xticks([]),yticks([]);
     title(images_title{condition});
 end
+% if condition == 3
+%     image(final_salmap{3})
+%     colormap gray
+%     set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+% end
+% axis square
 end
 
 %% analyse and plot image statistics vs. variance in congruence effects

@@ -5,7 +5,7 @@ sub_AUC = AUC_matrix(Results,2);
 %% analysis on criterion-free measures - hypo1, type 1
 % collapsed across eccentricity, compared against chance
 
-data_h1_t1 = table(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,3),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,4),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
+data_h1_t1 = table(categorical(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,2)),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,4),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
     'VariableNames',{'eccentricity','AUC','subjects'});
 lme_h1_t1_full = fitlme(data_h1_t1,'AUC ~ eccentricity + (1|subjects)');
 lme_h1_t1_reduced = fitlme(data_h1_t1,'AUC ~ 1+ (1|subjects)')
@@ -22,7 +22,7 @@ compare(lme_h1_t1_reduced,lme_h1_t1_full)
 
 %% hypo1, type 2
 
-data_h1_t2 = table(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,3),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,4),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
+data_h1_t2 = table(categorical(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,2)),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,4),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,1),...
     'VariableNames',{'eccentricity','AUC','subjects'});
 lme_h1_t2_full = fitlme(data_h1_t2,'AUC ~ eccentricity + (1|subjects)');
 lme_h1_t2_reduced = fitlme(data_h1_t2,'AUC ~ 1+ (1|subjects)')
@@ -38,7 +38,7 @@ std(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)== -1,4))/sqrt(240)
 [h6,p6] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type2(:,2)== 2,4),0.5,'alpha',0.05/3);
 
 %% hypo2, type 1
-data_h2_t1 = table(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,4),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,1),...
+data_h2_t1 = table(categorical(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,3)),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,1),...
     sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,2),'VariableNames',{'eccentricity','AUC','subjects','condition'});
  
 lme_h2_t1_full = fitlme(data_h2_t1,'AUC~eccentricity*condition + (1|subjects)');
@@ -71,7 +71,7 @@ mean(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2
 
 %% hypo 2, type 2
 
-data_h2_t2 = table(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,4),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,5),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,1),...
+data_h2_t2 = table(categorical(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,3)),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,5),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,1),...
     sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,2),'VariableNames',{'eccentricity','AUC','subjects','condition'});
  
 lme_h2_t2_full = fitlme(data_h2_t2,'AUC~eccentricity*condition + (1|subjects)');
