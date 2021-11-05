@@ -6,13 +6,11 @@
 function [out] = AUC_figures(data)
 % Results = data(data(:,11)~=0,:); %% exclude catch trials
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
-
+colours = cbrewer('qual','Set1',8);
 for exp = 1:2
     
 Results = data{exp};
 num_sub = length(unique(Results(:,1)));
-
-colours = cbrewer('qual','Set1',8);
 subject_id = unique(Results(:,1));
 
 % Results(:,9) = Results(:,8).*Results(:,9);
@@ -33,6 +31,7 @@ Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 %object -- signal absent for hypo 2
 Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
+end
 
 %% hypothesis 1 AUC
 
@@ -125,7 +124,7 @@ end
 end
 
 if num_sub >= 3
-se2 = std(matrix3(:,2));
+se2 = std(matrix3);
 end
 % plot graph
 out = figure;
@@ -645,5 +644,4 @@ xlabel('Patch location');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 0.9]);
-end
 end
