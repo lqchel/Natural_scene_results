@@ -6,42 +6,44 @@
 function [out] = AUC_figures(data)
 % Results = data(data(:,11)~=0,:); %% exclude catch trials
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
-colours = cbrewer('qual','Set1',8);
+colour_palatte = cbrewer('qual','Set1',8);
+colours = [colour_palatte(2,:); colour_palatte(5,:)];
 for exp = 1:2
-    
+Results = data{exp};
+Find_N{exp} = Results(:,5) ==1;
+location = [0 1 2]; % 0 = fovea, 1 = peripheral (2,4,6,8), 2 = para-peripheral (1,3,7,9)
+% present patch trials -- signal present for hypo 1
+Find_CAP{exp} = Results(:,4) == 0 & Results(:,5) == 2; 
+Find_IAP{exp} = Results(:,4) == 1 & Results(:,5) == 3; 
+
+%Congruent trial with Congruent object, and incongruent trial with
+%incongruent object -- signal present for hypo 2
+Find_Congruent_CP{exp} = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1; %% Results(:,6) == 1 for exp 2
+Find_Incongruent_IP{exp} = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
+
+%Incongruent trial with congruent object, congruent trial with incongruent
+%object -- signal absent for hypo 2
+Find_Congruent_IP{exp} = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
+Find_Incongruent_CP{exp} = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
+
+clear Results
+end
+
+%% hypothesis 1 AUC
+out = figure;
+subplot(2,3,1);
+for exp = 1:2
 Results = data{exp};
 num_sub = length(unique(Results(:,1)));
 subject_id = unique(Results(:,1));
 
-% Results(:,9) = Results(:,8).*Results(:,9);
-Find_N = Results(:,5) ==1;
-
-location = [0 1 2]; % 0 = fovea, 1 = peripheral (2,4,6,8), 2 = para-peripheral (1,3,7,9)
-
-% present patch trials -- signal present for hypo 1
-Find_CAP = Results(:,4) == 0 & Results(:,5) == 2; 
-Find_IAP = Results(:,4) == 1 & Results(:,5) == 3; 
-
-%Congruent trial with Congruent object, and incongruent trial with
-%incongruent object -- signal present for hypo 2
-Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1; %% Results(:,6) == 1 for exp 2
-Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
-
-%Incongruent trial with congruent object, congruent trial with incongruent
-%object -- signal absent for hypo 2
-Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
-Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
-end
-
-%% hypothesis 1 AUC
-
-Results_NC = Results(Find_N,:); % find absent patches
-Results_APC = Results(Find_IAP|Find_CAP,:); % find present patches
+Results_NC = Results(Find_N{exp},:); % find absent patches
+Results_APC = Results(Find_IAP{exp}|Find_CAP{exp},:); % find present patches
 matrix1 = zeros(num_sub,1);
 
 for sub = 1:num_sub 
 
-    Results_NC = Results(Find_N,:);
+    Results_NC = Results(Find_N{exp},:);
     Confidence_N = Results_NC(Results_NC(:,1)==subject_id(sub),9);
     Confidence_AP = Results_APC(Results_APC(:,1)==subject_id(sub),9);
     
@@ -72,15 +74,15 @@ for sub = 1:num_sub
 end
 
 if num_sub >= 3
-se1 = std(matrix1);
+se1 = std(matrix1)/sqrt(num_sub);
 end
 
 % AUC across eccentricities
 
 matrix3 = zeros(num_sub, 3);
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==subject_id(sub) & Find_N,:);
-    indvP = Results(Results(:,1)==subject_id(sub) & (Find_CAP|Find_IAP),:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_N{exp},:);
+    indvP = Results(Results(:,1)==subject_id(sub) & (Find_CAP{exp}|Find_IAP{exp}),:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
@@ -124,51 +126,132 @@ end
 end
 
 if num_sub >= 3
-se2 = std(matrix3);
+se2 = std(matrix3)/sqrt(num_sub);
 end
 % plot graph
-out = figure;
+errorbar(-5,mean(matrix1),se1,'.','MarkerSize',14,...
+'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+if exp == 1
+    hold on
+end
+errorbar([0 6.5 9.2],mean(matrix3),se2,'.-','MarkerSize',14,...
+'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+plot([-7 11],[0.5 0.5],'k--');
 
-if num_sub < 3
-    subplot(2,2,1),plot(-5,mean(matrix1),'.','MarkerSize',14,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
+if exp == 2
+hold off
+ylabel('Objective Type 1 AUC');
+xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+ylim([0.4 1]);
+legend('off');
+title('P+O vs. N','FontName','Arial');
+end
+clear matrix1
+clear matrix3
+
+end
+
+%% hypothesis 1 type 2 AUC
+figure(out);
+subplot(2,3,4);
+
+for exp = 1:2
+Results = data{exp};
+Results(:,9) = abs(Results(:,9));
+num_sub = length(unique(Results(:,1)));
+subject_id = unique(Results(:,1));
+Results_NC = Results(Find_N{exp},:); % all trials with absent test probes
+Results_APC = Results(Find_IAP{exp}|Find_CAP{exp},:); % all trials with present test probes
+Results_Correct = [Results_NC(Results_NC(:,8)==-1,:); Results_APC(Results_APC(:,8)==1,:)];
+Results_Incorrect = [Results_NC(Results_NC(:,8)==1,:); Results_APC(Results_APC(:,8)==-1,:)];
+matrix6 = zeros(num_sub,3);
+
+for a = 1:3
+    for sub = 1:num_sub 
+
+    Confidence_Incorrect = Results_Incorrect(Results_Incorrect(:,1)==subject_id(sub) & Results_Incorrect(:,13)==location(a),9);
+    Confidence_Correct = Results_Correct(Results_Correct(:,1)==subject_id(sub)& Results_Correct(:,13)==location(a),9);
+%     Confidence_Incorrect = Results_Incorrect(:,9);
+%     Confidence_Correct = Results_Correct(:,9);
+    
+    for i = -4:-1
+        Confidence_YCounts(i+5) = sum(Confidence_Correct == -i);
+        Confidence_NCounts(i+5) = sum(Confidence_Incorrect == -i);
+    end
+    for i = 1:4
+        if i == 1
+        Cumulative_NCounts(i) = Confidence_NCounts(i);
+        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
+        Confidence_YCounts(i) = Confidence_YCounts(i);
+        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
+        else
+        Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
+        Confidence_YCounts(i)= Confidence_YCounts(i-1)+ Confidence_YCounts(i);
+        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
+        end
+    end
+
+    Cumulative_Hit = [0 Cumulative_Hit];
+    Cumulative_FA = [0 Cumulative_FA];
+    AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+
+    matrix6(sub,a)= AUC; % create matrix for individual AUCs
+    
+    clear Cumulative_Hit
+    clear Cumulative_FA
+    clear AUC
+ 
+    end
+end
+
+% AUC on each eccentricity levels
+AUC_ecc = reshape(nanmean(matrix6,1),[1,3]);
+
+if num_sub >= 3
+se4 = nanstd(matrix6)/sqrt(num_sub);
+se7 = nanstd(mean(matrix6,2))/sqrt(num_sub);
+end
+
+
+errorbar(-5,nanmean(nanmean(matrix6)),se7,'.','MarkerSize',14,...
+    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+if exp == 1
     hold on
-    plot([0 6.5 9.2],mean(matrix3,1),'.-','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
-    plot([-7 11],[0.5 0.5],'k--');
+end
+errorbar([0 6.5 9.2],AUC_ecc,se4,'.-','MarkerSize',14,...
+    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+plot([-7 11],[0.5 0.5],'k--');
+
+if exp == 2
     hold off
-    title('present vs. null','FontName','Arial');
-else
-    subplot(2,2,1),errorbar(-5,mean(matrix1),se1,'.','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-    hold on
-    errorbar([0 6.5 9.2],mean(matrix3),se2,'.-','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-    plot([-7 11],[0.5 0.5],'k--');
-    hold off
-end  
-    ylabel('Objective Type 1 AUC');
-    xlabel('Patch location');
+    ylabel('Subjective Type 2 AUC');
     xlim([-7 11]),xticks([-5 0 6.5 9.2]);
     set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-    ylim([0.4 1]);
+    ylim([0.4 0.9]);
+    xlabel('Patch location');
     legend('off');
-    title('present vs. null','FontName','Arial');
+end
+clear Confidence_Correct
+clear Confidence_Incorrect
 
-
-
+end
 
 %% hypothesis 2 AUC
+out = figure;
+subplot(2,3,4);
+for exp = 1:2
 grandmatrix = zeros(num_sub,2);
 for condition = 1:2
     
     for sub = 1:num_sub
     if condition ==1
-        Confidence_P = Results(Find_Congruent_CP & Results(:,1)==subject_id(sub),9);
-        Confidence_A = Results(Find_Congruent_IP & Results(:,1)==subject_id(sub),9);
+        Confidence_P = Results(Find_Congruent_CP{exp} & Results(:,1)==subject_id(sub),9);
+        Confidence_A = Results(Find_Congruent_IP{exp} & Results(:,1)==subject_id(sub),9);
     else
-        Confidence_P = Results(Find_Incongruent_IP & Results(:,1)==subject_id(sub),9);
-        Confidence_A = Results(Find_Incongruent_CP & Results(:,1)==subject_id(sub),9);
+        Confidence_P = Results(Find_Incongruent_IP{exp} & Results(:,1)==subject_id(sub),9);
+        Confidence_A = Results(Find_Incongruent_CP{exp} & Results(:,1)==subject_id(sub),9);
     end
 
 for i = -4:4
@@ -212,8 +295,8 @@ end
 
 matrix4 = zeros(num_sub, 3);
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==subject_id(sub) & Find_Congruent_IP,:);
-    indvP = Results(Results(:,1)==subject_id(sub) & Find_Congruent_CP,:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_Congruent_IP{exp},:);
+    indvP = Results(Results(:,1)==subject_id(sub) & Find_Congruent_CP{exp},:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
@@ -270,8 +353,8 @@ clear indv_dff
 matrix5 = zeros(num_sub, 3);
 
 for sub = 1:num_sub
-    indvN = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_CP,:);
-    indvP = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_IP,:); % trial classification
+    indvN = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_CP{exp},:);
+    indvP = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_IP{exp},:); % trial classification
 for a = 1:3
     
     indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
@@ -353,101 +436,7 @@ set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 1]);
 title('original vs. modified','FontName','Arial');
 
-
-%% hypothesis 1 type 2 AUC
-
-Results(:,9) = abs(Results(:,9));
-Results_NC = Results(Find_N,:); % all trials with absent test probes
-Results_APC = Results(Find_IAP|Find_CAP,:); % all trials with present test probes
-Results_Correct = [Results_NC(Results_NC(:,8)==-1,:); Results_APC(Results_APC(:,8)==1,:)];
-Results_Incorrect = [Results_NC(Results_NC(:,8)==1,:); Results_APC(Results_APC(:,8)==-1,:)];
-
-matrix6 = zeros(num_sub,3);
-
-
-for a = 1:3
-    for sub = 1:num_sub 
-
-    Confidence_Incorrect = Results_Incorrect(Results_Incorrect(:,1)==subject_id(sub) & Results_Incorrect(:,13)==location(a),9);
-    Confidence_Correct = Results_Correct(Results_Correct(:,1)==subject_id(sub)& Results_Correct(:,13)==location(a),9);
-%     Confidence_Incorrect = Results_Incorrect(:,9);
-%     Confidence_Correct = Results_Correct(:,9);
-    
-    for i = -4:-1
-        Confidence_YCounts(i+5) = sum(Confidence_Correct == -i);
-        Confidence_NCounts(i+5) = sum(Confidence_Incorrect == -i);
-    end
-    for i = 1:4
-        if i == 1
-        Cumulative_NCounts(i) = Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
-        Confidence_YCounts(i) = Confidence_YCounts(i);
-        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
-        else
-        Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
-        Confidence_YCounts(i)= Confidence_YCounts(i-1)+ Confidence_YCounts(i);
-        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
-        end
-    end
-
-    Cumulative_Hit = [0 Cumulative_Hit];
-    Cumulative_FA = [0 Cumulative_FA];
-    AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-
-    matrix6(sub,a)= AUC; % create matrix for individual AUCs
-%     hit_matrix(sub,:,a) = Cumulative_Hit;
-%     FA_matrix(sub,:,a) = Cumulative_FA;
-    
-    clear Cumulative_Hit
-    clear Cumulative_FA
-    clear AUC
- 
-    end
 end
-
-% final_AUC = round(final_AUC,2);
-
-
-% AUC on each eccentricity levels
-AUC_ecc = reshape(nanmean(matrix6,1),[1,3]);
-
-if num_sub >= 3
-se4 = within_se(matrix6,num_sub,3);
-se7 = nanstd(mean(matrix6,2))/sqrt(num_sub);
-end
-
-figure(out);
-if num_sub<3
-    
-    subplot(2,2,3),plot(-5,nanmean(nanmean(matrix6)),'.','MarkerSize',14,...
-    'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
-    hold on
-    plot([0 6.5 9.2],AUC_ecc,'.-','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1);
-    plot([-7 11],[0.5 0.5],'k--');
-    hold off
-
-else
-    subplot(2,2,3),errorbar(-5,nanmean(nanmean(matrix6)),se7,'.','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-    hold on
-    errorbar([0 6.5 9.2],AUC_ecc,se4,'.-','MarkerSize',14,...
-        'MarkerFaceColor',colours(5,:),'MarkerEdgeColor',colours(5,:),'Color',colours(5,:),'LineWidth',1,'Capsize',10);
-    plot([-7 11],[0.5 0.5],'k--');
-    hold off
-
-end
-
-ylabel('Subjective Type 2 AUC');
-xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-ylim([0.4 0.9]);
-xlabel('Patch location');
-title('present vs. null','FontName','Arial');
-legend('off');
-clear Confidence_Correct
-clear Confidence_Incorrect
 
 %% hypothesis 2 type 2 AUC 
 matrix7 = zeros(num_sub,2);
@@ -457,13 +446,13 @@ for condition = 1:2
     
     for sub = 1:num_sub
     if condition ==1
-        Results_N = Results(Find_Congruent_IP,:);
-        Results_A = Results(Find_Congruent_CP,:);
+        Results_N = Results(Find_Congruent_IP{exp},:);
+        Results_A = Results(Find_Congruent_CP{exp},:);
         Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
         Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
     else
-        Results_N = Results(Find_Incongruent_CP,:);
-        Results_A = Results(Find_Incongruent_IP,:);
+        Results_N = Results(Find_Incongruent_CP{exp},:);
+        Results_A = Results(Find_Incongruent_IP{exp},:);
         Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
         Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
     end
@@ -512,8 +501,8 @@ for condition = 1:3
     
     for sub = 1:num_sub
   
-        Results_N = Results(Find_Congruent_IP & Results(:,13)== location(condition),:);
-        Results_A = Results(Find_Congruent_CP & Results(:,13) == location(condition),:);
+        Results_N = Results(Find_Congruent_IP{exp} & Results(:,13)== location(condition),:);
+        Results_A = Results(Find_Congruent_CP{exp} & Results(:,13) == location(condition),:);
         Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
         Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
  
@@ -564,8 +553,8 @@ for condition = 1:3
     
     for sub = 1:num_sub
   
-        Results_N = Results(Find_Incongruent_CP & Results(:,13)== location(condition),:);
-        Results_A = Results(Find_Incongruent_IP & Results(:,13) == location(condition),:);
+        Results_N = Results(Find_Incongruent_CP{exp} & Results(:,13)== location(condition),:);
+        Results_A = Results(Find_Incongruent_IP{exp} & Results(:,13) == location(condition),:);
         Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
         Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
  
