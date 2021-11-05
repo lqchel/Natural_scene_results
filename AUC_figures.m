@@ -130,12 +130,12 @@ se2 = std(matrix3)/sqrt(num_sub);
 end
 % plot graph
 errorbar(-5,mean(matrix1),se1,'.','MarkerSize',14,...
-'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
 if exp == 1
     hold on
 end
 errorbar([0 6.5 9.2],mean(matrix3),se2,'.-','MarkerSize',14,...
-'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
 plot([-7 11],[0.5 0.5],'k--');
 
 if exp == 2
@@ -216,12 +216,12 @@ end
 
 
 errorbar(-5,nanmean(nanmean(matrix6)),se7,'.','MarkerSize',14,...
-    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
 if exp == 1
     hold on
 end
 errorbar([0 6.5 9.2],AUC_ecc,se4,'.-','MarkerSize',14,...
-    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1,'Capsize',10);
+    'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
 plot([-7 11],[0.5 0.5],'k--');
 
 if exp == 2
@@ -238,109 +238,123 @@ clear Confidence_Incorrect
 
 end
 
-%% hypothesis 2 AUC
-out = figure;
-subplot(2,3,4);
+%% hypothesis 2, Congruent Type 1 AUC
+figure(out);
+subplot(2,3,2);
+
 for exp = 1:2
-grandmatrix = zeros(num_sub,2);
-for condition = 1:2
+Results = data{exp};
+num_sub = length(unique(Results(:,1)));
+subject_id = unique(Results(:,1));    
+grandmatrix = zeros(num_sub,1);
     
     for sub = 1:num_sub
-    if condition ==1
         Confidence_P = Results(Find_Congruent_CP{exp} & Results(:,1)==subject_id(sub),9);
         Confidence_A = Results(Find_Congruent_IP{exp} & Results(:,1)==subject_id(sub),9);
-    else
-        Confidence_P = Results(Find_Incongruent_IP{exp} & Results(:,1)==subject_id(sub),9);
-        Confidence_A = Results(Find_Incongruent_CP{exp} & Results(:,1)==subject_id(sub),9);
+
+        for i = -4:4
+            Confidence_APCounts(i+5) = nansum(Confidence_P == -i);
+            Confidence_NCounts(i+5) = nansum(Confidence_A == -i);
+        end
+        for i = 1:9
+            if i == 1
+            Cumulative_NCounts(i) = Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
+            Cumulative_APCounts(i) = Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
+            else
+            Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
+            Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
+            end
+        end
+
+        Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
+        Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
+        AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+
+        grandmatrix(sub)= AUC;
+
+        clear Confidence_P
+        clear Confidence_A
+        clear Cumulative_NCounts;
+        clear Cumulative_APCounts;
+        clear Cumulative_Hit;
+        clear Cumulative_FA;
+        clear AUC;
     end
-
-for i = -4:4
-    Confidence_APCounts(i+5) = nansum(Confidence_P == -i);
-    Confidence_NCounts(i+5) = nansum(Confidence_A == -i);
-end
-for i = 1:9
-    if i == 1
-    Cumulative_NCounts(i) = Confidence_NCounts(i);
-    Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
-    Cumulative_APCounts(i) = Confidence_APCounts(i);
-    Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
-    else
-    Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
-    Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
-    Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
-    Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
-    end
-end
-
-Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
-Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
-AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-
-grandmatrix(sub,condition)= AUC;
-
-clear Confidence_P
-clear Confidence_A
-clear Cumulative_NCounts;
-clear Cumulative_APCounts;
-clear Cumulative_Hit;
-clear Cumulative_FA;
-clear AUC;
-    end
-
-end
 
 % across eccentricities
 
 %congruent
 
-matrix4 = zeros(num_sub, 3);
-for sub = 1:num_sub
-    indvN = Results(Results(:,1)==subject_id(sub) & Find_Congruent_IP{exp},:);
-    indvP = Results(Results(:,1)==subject_id(sub) & Find_Congruent_CP{exp},:); % trial classification
-for a = 1:3
-    
-    indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
-    indvP_loc = indvP(indvP(:,13) == location(a),:);
-    Confidence_N = indvN_loc(:,9);
-    Confidence_AP = indvP_loc(:,9);
-    
-    for i = -4:4
-        Confidence_APCounts(i+5) = nansum(Confidence_AP == -i); % AUC calculation
-        Confidence_NCounts(i+5) = nansum(Confidence_N == -i);
-    end
-    for i = 1:9
-        if i == 1
-        Cumulative_NCounts(i) = Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
-        Cumulative_APCounts(i) = Confidence_APCounts(i);
-        Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
-        else
-        Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
-        Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
-        Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+    matrix4 = zeros(num_sub, 3);
+    for sub = 1:num_sub
+        indvN = Results(Results(:,1)==subject_id(sub) & Find_Congruent_IP{exp},:);
+        indvP = Results(Results(:,1)==subject_id(sub) & Find_Congruent_CP{exp},:); % trial classification
+    for a = 1:3
+
+        indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
+        indvP_loc = indvP(indvP(:,13) == location(a),:);
+        Confidence_N = indvN_loc(:,9);
+        Confidence_AP = indvP_loc(:,9);
+
+        for i = -4:4
+            Confidence_APCounts(i+5) = nansum(Confidence_AP == -i); % AUC calculation
+            Confidence_NCounts(i+5) = nansum(Confidence_N == -i);
         end
+        for i = 1:9
+            if i == 1
+            Cumulative_NCounts(i) = Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
+            Cumulative_APCounts(i) = Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+            else
+            Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
+            Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+            end
+        end
+
+        Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
+        Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
+        AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+        matrix4(sub,a)= AUC;
+
+    clear Confidence_P
+    clear Confidence_A
+    clear Cumulative_NCounts;
+    clear Cumulative_APCounts;
+    clear Cumulative_Hit;
+    clear Cumulative_FA;
+    clear AUC
+
+    end
     end
 
-    Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
-    Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
-    AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix4(sub,a)= AUC;
-    
-clear Confidence_P
-clear Confidence_A
-clear Cumulative_NCounts;
-clear Cumulative_APCounts;
-clear Cumulative_Hit;
-clear Cumulative_FA;
-clear AUC
-    
+    errorbar(-5,mean(grandmatrix),nanstd(grandmatrix)/sqrt(num_sub),'.','MarkerSize',14,...
+            'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1);
+    if exp == 1
+        hold on
+    end
+    errorbar([0 6.5 9.2],nanmean(matrix4),nanstd(matrix4)/sqrt(num_sub),'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1);
+    if exp == 2
+        plot([-7 11],[0.5 0.5],'k--');
+        hold off
+        legend('off');
+        xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        ylim([0.4 1]);
+        title('O vs. M, Congruent','FontName','Arial');
+    end
+    clear grandmatrix
+    clear matrix4
 end
-end
 
-
-
-%incongruent condition
+%% Hypothesis 2, Type 1, Incongruent
 
 clear indvN
 clear indvP
@@ -350,112 +364,135 @@ clear population_m
 clear indv_mean
 clear indv_dff
 
+figure(out);
+subplot(2,3,3);
+
+for exp = 1:2
+Results = data{exp};
+num_sub = length(unique(Results(:,1)));
+subject_id = unique(Results(:,1));    
+grandmatrix = zeros(num_sub,1);
 matrix5 = zeros(num_sub, 3);
 
-for sub = 1:num_sub
-    indvN = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_CP{exp},:);
-    indvP = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_IP{exp},:); % trial classification
-for a = 1:3
-    
-    indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
-    indvP_loc = indvP(indvP(:,13) == location(a),:);
-    Confidence_N = indvN_loc(:,9);
-    Confidence_AP = indvP_loc(:,9);
-    
-    for i = -4:4
-        Confidence_APCounts(i+5) = nansum(Confidence_AP == -i); % AUC calculation
-        Confidence_NCounts(i+5) = nansum(Confidence_N == -i);
-    end
-    for i = 1:9
-        if i == 1
-        Cumulative_NCounts(i) = Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
-        Cumulative_APCounts(i) = Confidence_APCounts(i);
-        Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
-        else
-        Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
-        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
-        Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
-        Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+% collapsed across eccentricities
+    for sub = 1:num_sub
+        Confidence_P = Results(Find_Incongruent_IP{exp} & Results(:,1)==subject_id(sub),9);
+        Confidence_A = Results(Find_Incongruent_CP{exp} & Results(:,1)==subject_id(sub),9);
+
+        for i = -4:4
+            Confidence_APCounts(i+5) = nansum(Confidence_P == -i);
+            Confidence_NCounts(i+5) = nansum(Confidence_A == -i);
         end
+        for i = 1:9
+            if i == 1
+            Cumulative_NCounts(i) = Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
+            Cumulative_APCounts(i) = Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
+            else
+            Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+            Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_A);
+            Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
+            Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_P);
+            end
+        end
+
+        Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
+        Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
+        AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+
+        grandmatrix(sub)= AUC;
+
+        clear Confidence_P
+        clear Confidence_A
+        clear Cumulative_NCounts;
+        clear Cumulative_APCounts;
+        clear Cumulative_Hit;
+        clear Cumulative_FA;
+        clear AUC;
     end
 
-    Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
-    Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
-    AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix5(sub,a)= AUC;
-    
-clear Confidence_P
-clear Confidence_A
-clear Cumulative_NCounts;
-clear Cumulative_APCounts;
-clear Cumulative_Hit;
-clear Cumulative_FA;
-clear AUC;
 
-    
-end
+% on each eccentricity level
+        for sub = 1:num_sub
+            indvN = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_CP{exp},:);
+            indvP = Results(Results(:,1)==subject_id(sub) & Find_Incongruent_IP{exp},:); % trial classification
+        for a = 1:3
+
+            indvN_loc = indvN(indvN(:,13)== location(a),:); % select trials on that location
+            indvP_loc = indvP(indvP(:,13) == location(a),:);
+            Confidence_N = indvN_loc(:,9);
+            Confidence_AP = indvP_loc(:,9);
+
+            for i = -4:4
+                Confidence_APCounts(i+5) = nansum(Confidence_AP == -i); % AUC calculation
+                Confidence_NCounts(i+5) = nansum(Confidence_N == -i);
+            end
+            for i = 1:9
+                if i == 1
+                Cumulative_NCounts(i) = Confidence_NCounts(i);
+                Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
+                Cumulative_APCounts(i) = Confidence_APCounts(i);
+                Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+                else
+                Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+                Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_N);
+                Cumulative_APCounts(i)= Cumulative_APCounts(i-1)+ Confidence_APCounts(i);
+                Cumulative_Hit(i) = Cumulative_APCounts(i)/length(Confidence_AP);
+                end
+            end
+
+            Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
+            Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
+            AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+            matrix5(sub,a)= AUC;
+
+        clear Confidence_P
+        clear Confidence_A
+        clear Cumulative_NCounts;
+        clear Cumulative_APCounts;
+        clear Cumulative_Hit;
+        clear Cumulative_FA;
+        clear AUC
+        end
+        end
+       
+       errorbar(-5,mean(grandmatrix),nanstd(grandmatrix)/sqrt(num_sub),'.','MarkerSize',14,...
+                'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1);
+        if exp == 1
+            hold on
+        end
+        errorbar([0 6.5 9.2],nanmean(matrix5),nanstd(matrix5)/sqrt(num_sub),'.-','MarkerSize',14,...
+            'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1);
+        if exp == 2
+            plot([-7 11],[0.5 0.5],'k--');
+            hold off
+            xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+            set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+            ylim([0.4 1]);
+            title('O vs. M, Incongruent','FontName','Arial');
+        end
+        legend('','Experiment 1','','Experiment 2','','Box','off');
+        clear grandmatrix
+        clear matrix5
 end
 
+%% Hypothesis 2 Type 2 AUC, Congruent
 figure(out);
-
-if num_sub<3
-    subplot(2,2,2),plot(-5,nanmean(grandmatrix(:,1)),'d','MarkerSize',6,...
-    'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    legend('off');
-    hold on
-    plot(-5,mean(grandmatrix(:,2)),'d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([0 6.5 9.2],nanmean(matrix4,1),'-d','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([0 6.5 9.2],nanmean(matrix5,1),'--d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([-7 11],[0.5 0.5],'k--');
-    legend({'Congruent','Incongruent'},'Box','off');
-    hold off
-else
-    subplot(2,2,2),errorbar(-5,mean(grandmatrix(:,1)),std(grandmatrix(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    legend('off');
-    hold on
-    errorbar(-5,mean(grandmatrix(:,2)),std(grandmatrix(:,2))/sqrt(num_sub),'d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    errorbar([0 6.5 9.2],nanmean(matrix4),within_se(matrix4,num_sub,3),'d-','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    errorbar([0 6.5 9.2],nanmean(matrix5),within_se(matrix5,num_sub,3),'d--','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([-7 11],[0.5 0.5],'k--');
-    legend({'Congruent','Incongruent'},'Box','off');
-    hold off
-end
-
-ylabel('Objective Type 1 AUC');
-xlabel('Patch location');
-xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-ylim([0.4 1]);
-title('original vs. modified','FontName','Arial');
-
-end
-
-%% hypothesis 2 type 2 AUC 
-matrix7 = zeros(num_sub,2);
-
-
-for condition = 1:2
+subplot(2,3,5);
+for exp = 1:2
+Results = data{exp};
+Results(:,9) = abs(Results(:,9));
+num_sub = length(unique(Results(:,1)));
+subject_id = unique(Results(:,1));
+matrix7 = zeros(num_sub,1);
     
     for sub = 1:num_sub
-    if condition ==1
+
         Results_N = Results(Find_Congruent_IP{exp},:);
         Results_A = Results(Find_Congruent_CP{exp},:);
         Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) & Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
         Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
-    else
-        Results_N = Results(Find_Incongruent_CP{exp},:);
-        Results_A = Results(Find_Incongruent_IP{exp},:);
-        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
-        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
-    end
 
    for i = -4:-1
         Confidence_YCounts(i+5) = sum(Confidence_Correct == -i);
@@ -479,7 +516,7 @@ for condition = 1:2
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
 
-    matrix7(sub,condition)= AUC; % create matrix for individual AUCs
+    matrix7(sub)= AUC; % create matrix for individual AUCs
 
 clear Confidence_Correct
 clear Confidence_Incorrect
@@ -489,8 +526,6 @@ clear Cumulative_Hit;
 clear Cumulative_FA;
 clear AUC;
     end
-
-end
 
 % across eccentricities
 
@@ -541,13 +576,82 @@ clear AUC;
 
 end
 
+    errorbar(-5,nanmean(matrix7),nanstd(matrix7)/sqrt(num_sub),'.','MarkerSize',14,...
+        'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
+    if exp == 1
+        hold on
+    end
+    errorbar([0 6.5 9.2],nanmean(matrix9),nanstd(matrix9)/sqrt(num_sub),'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
+    plot([-7 11],[0.5 0.5],'k--');
 
-%incongruent condition
+    if exp == 2
+        hold off
+        xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        ylim([0.4 0.9]);
+        xlabel('Patch location');
+        legend('off');
+    end
+    clear Confidence_Correct
+    clear Confidence_Incorrect
+    clear matrix7
+    clear matrix9
+end
+
+%% Hypothesis 2, Type 2, Incongruent
 clear Results_N
 clear Results_A
+figure(out);
+subplot(2,3,6);
 
+for exp = 1:2
+Results = data{exp};
+Results(:,9) = abs(Results(:,9));
+num_sub = length(unique(Results(:,1)));
+subject_id = unique(Results(:,1));
+matrix7 = zeros(num_sub,1);
+matrix9 = zeros(num_sub, 3);
 
-matrix0 = zeros(num_sub, 3);
+   for sub = 1:num_sub
+
+        Results_N = Results(Find_Incongruent_CP{exp},:);
+        Results_A = Results(Find_Incongruent_IP{exp},:);
+        Confidence_Correct = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==-1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==1,9)];
+        Confidence_Incorrect = [Results_N(Results_N(:,1)== subject_id(sub) &Results_N(:,8)==1,9); Results_A(Results_A(:,1)==subject_id(sub) & Results_A(:,8)==-1,9)];
+        
+   for i = -4:-1
+        Confidence_YCounts(i+5) = sum(Confidence_Correct == -i);
+        Confidence_NCounts(i+5) = sum(Confidence_Incorrect == -i);
+    end
+    for i = 1:4
+        if i == 1
+        Cumulative_NCounts(i) = Confidence_NCounts(i);
+        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
+        Confidence_YCounts(i) = Confidence_YCounts(i);
+        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
+        else
+        Cumulative_NCounts(i) = Cumulative_NCounts(i-1) + Confidence_NCounts(i);
+        Cumulative_FA(i) = Cumulative_NCounts(i)/length(Confidence_Incorrect);
+        Confidence_YCounts(i)= Confidence_YCounts(i-1)+ Confidence_YCounts(i);
+        Cumulative_Hit(i) = Confidence_YCounts(i)/length(Confidence_Correct);
+        end
+    end
+
+    Cumulative_Hit = [0 Cumulative_Hit];
+    Cumulative_FA = [0 Cumulative_FA];
+    AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
+
+    matrix7(sub)= AUC; % create matrix for individual AUCs
+
+clear Confidence_Correct
+clear Confidence_Incorrect
+clear Cumulative_NCounts;
+clear Cumulative_APCounts;
+clear Cumulative_Hit;
+clear Cumulative_FA;
+clear AUC;
+    end
 
 for condition = 1:3
     
@@ -581,7 +685,7 @@ for condition = 1:3
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
 
-    matrix0(sub,condition)= AUC; % create matrix for individual AUCs
+    matrix9(sub,condition)= AUC; % create matrix for individual AUCs
 
 clear Confidence_Correct
 clear Confidence_Incorrect
@@ -593,44 +697,24 @@ clear AUC;
     end
 
 end
-
-figure(out);
-disp(matrix0)
-
-if num_sub < 3
-    subplot(2,2,4),plot(-5,mean(matrix7(:,1)),'d','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    legend('off');
-    hold on
-    plot(-5,mean(matrix7(:,2)),'d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([0 6.5 9.2],nanmean(matrix9,1),'-d','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([0 6.5 9.2],nanmean(matrix0,1),'--d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
+    errorbar(-5,nanmean(matrix7),nanstd(matrix7)/sqrt(num_sub),'.','MarkerSize',14,...
+        'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
+    if exp == 1
+        hold on
+    end
+    errorbar([0 6.5 9.2],nanmean(matrix9),nanstd(matrix9)/sqrt(num_sub),'.-','MarkerSize',14,...
+        'MarkerFaceColor',colours(exp,:),'MarkerEdgeColor',colours(exp,:),'Color',colours(exp,:),'LineWidth',1.2,'Capsize',10);
     plot([-7 11],[0.5 0.5],'k--');
-    legend({'Congruent','Incongruent'},'Box','off');
-    hold off
-else
-    subplot(2,2,4),errorbar(-5,mean(matrix7(:,1)),std(matrix7(:,1))/sqrt(num_sub),'d','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    legend('off');
-    hold on
-    errorbar(-5,mean(matrix7(:,2)),std(matrix7(:,2))/sqrt(15),'d','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    errorbar([0 6.5 9.2],nanmean(matrix9),within_se(matrix9,num_sub,3),'d-','MarkerSize',6,...
-        'MarkerFaceColor',colours(2,:),'MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    errorbar([0 6.5 9.2],nanmean(matrix0),within_se(matrix0,num_sub,3),'d--','MarkerSize',6,...
-        'MarkerFaceColor','white','MarkerEdgeColor',colours(2,:),'Color',colours(2,:),'LineWidth',1);
-    plot([-7 11],[0.5 0.5],'k--');
-    legend({'Congruent','Incongruent'},'Box','off');
-    hold off
+
+    if exp == 2
+        hold off
+        xlim([-7 11]),xticks([-5 0 6.5 9.2]);
+        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        ylim([0.4 0.9]);
+        xlabel('Patch location');
+        legend('off');
+    end
+    clear matrix7
+    clear matrix9
 end
-
-title('original vs. modified','FontName','Arial');
-ylabel('Subjective Type 2 AUC');
-xlabel('Patch location');
-xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-ylim([0.4 0.9]);
 end
