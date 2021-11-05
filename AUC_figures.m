@@ -5,9 +5,11 @@
 
 function [out] = AUC_figures(data)
 % Results = data(data(:,11)~=0,:); %% exclude catch trials
-addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results');
-addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer');
-Results = data;
+addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
+
+for exp = 1:2
+    
+Results = data{exp};
 num_sub = length(unique(Results(:,1)));
 
 colours = cbrewer('qual','Set1',8);
@@ -71,7 +73,7 @@ for sub = 1:num_sub
 end
 
 if num_sub >= 3
-se1 = std(matrix1)/sqrt(num_sub);
+se1 = std(matrix1);
 end
 
 % AUC across eccentricities
@@ -123,7 +125,7 @@ end
 end
 
 if num_sub >= 3
-se2 = within_se(matrix3,num_sub,3);
+se2 = std(matrix3(:,2));
 end
 % plot graph
 out = figure;
@@ -643,5 +645,5 @@ xlabel('Patch location');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
 set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
 ylim([0.4 0.9]);
-
+end
 end
