@@ -1,29 +1,43 @@
 clear all
+%%% exp 1
+Results = importdata('Pooled Results.mat');
+sub_AUC = AUC_matrix(Results,1);
+
+%%% exp 2
 run('get_data2.m');
 sub_AUC = AUC_matrix(Results,2);
 
 %% analysis on criterion-free measures - hypo1, type 1
-% collapsed across eccentricity, compared against chance
 
-data_h1_t1 = table(categorical(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,2)),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,4),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
+% exp 1 table
+data_h1_t1 = table(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,3),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,4),...
+    sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
     'VariableNames',{'eccentricity','AUC','subjects'});
+
+%%% exp 2 table
+% data_h1_t1 = table(categorical(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,2)),sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,4),...
+%     sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)~= -1,1),...
+%     'VariableNames',{'eccentricity','AUC','subjects'});
+
 lme_h1_t1_full = fitlme(data_h1_t1,'AUC ~ eccentricity + (1|subjects)');
 lme_h1_t1_reduced = fitlme(data_h1_t1,'AUC ~ 1+ (1|subjects)')
 compare(lme_h1_t1_reduced,lme_h1_t1_full)
-% lme_h1_t1_quadratic = fitlme(data_h1_t1,'AUC ~ 1 + (1|subjects)');
 
-% [h,p] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,1)== -1,4),0.5)
-% LME.overall_h1_t1 = p;
-% LME.quadratic_h1_t1 = compare(lme_h1_t1_quadratic,lme_h1_t1_full);
+
 [h1,p1] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)== 0,4),0.5,'alpha',0.05/3);
 [h2,p2] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)== 1,4),0.5,'alpha',0.05/3);
 [h3,p3] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type1(:,2)== 2,4),0.5,'alpha',0.05/3);
 
 
 %% hypo1, type 2
-
-data_h1_t2 = table(categorical(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,2)),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,4),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,1),...
+% exp 1 table
+data_h1_t2 = table(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,3),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,4),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,1),...
     'VariableNames',{'eccentricity','AUC','subjects'});
+
+% % exp2 table
+% data_h1_t2 = table(categorical(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,2)),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,4),sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)~= -1,1),...
+%     'VariableNames',{'eccentricity','AUC','subjects'});
+
 lme_h1_t2_full = fitlme(data_h1_t2,'AUC ~ eccentricity + (1|subjects)');
 lme_h1_t2_reduced = fitlme(data_h1_t2,'AUC ~ 1+ (1|subjects)')
 compare(lme_h1_t2_reduced,lme_h1_t2_full)
@@ -38,8 +52,13 @@ std(sub_AUC.hypo1_Type2(sub_AUC.hypo1_Type2(:,2)== -1,4))/sqrt(240)
 [h6,p6] = ttest(sub_AUC.hypo1_Type1(sub_AUC.hypo1_Type2(:,2)== 2,4),0.5,'alpha',0.05/3);
 
 %% hypo2, type 1
-data_h2_t1 = table(categorical(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,3)),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,1),...
-    sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,2),'VariableNames',{'eccentricity','AUC','subjects','condition'});
+%%% exp 1 table
+data_h2_t1 = table(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,4),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,1),...
+    categorical(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,2)),'VariableNames',{'eccentricity','AUC','subjects','condition'});
+
+%%% exp 2 table
+% data_h2_t1 = table(cagtegorical(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,3)),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,5),sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,1),...
+%     categorical(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1,2)),'VariableNames',{'eccentricity','AUC','subjects','condition'});
  
 lme_h2_t1_full = fitlme(data_h2_t1,'AUC~eccentricity*condition + (1|subjects)');
 lme_h2_t1_ecc = fitlme(data_h2_t1,'AUC~eccentricity:condition + condition + (1|subjects)');
@@ -71,8 +90,13 @@ mean(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)== -1 & sub_AUC.hypo2_Type1(:,2
 
 %% hypo 2, type 2
 
-data_h2_t2 = table(categorical(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,3)),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,5),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,1),...
-    sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,2),'VariableNames',{'eccentricity','AUC','subjects','condition'});
+%%% exp 1 table
+data_h2_t2 = table(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,4),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,5),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,1),...
+    categorical(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,2)),'VariableNames',{'eccentricity','AUC','subjects','condition'});
+
+%%% exp 2 table
+% data_h2_t2 = table(categorical(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,3)),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,5),sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,1),...
+%     categorical(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)~= -1,2)),'VariableNames',{'eccentricity','AUC','subjects','condition'});
  
 lme_h2_t2_full = fitlme(data_h2_t2,'AUC~eccentricity*condition + (1|subjects)');
 lme_h2_t2_ecc = fitlme(data_h2_t2,'AUC~eccentricity:condition + condition + (1|subjects)');
