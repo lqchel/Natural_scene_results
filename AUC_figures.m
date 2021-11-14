@@ -229,7 +229,7 @@ if exp == 2
     ylabel('Subjective Type 2 AUC');
     xlim([-7 11]),xticks([-5 0 6.5 9.2]);
     set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-    ylim([0.4 0.9]);
+    ylim([0.4 1]);
     xlabel('Patch location');
     legend('off');
 end
@@ -589,7 +589,7 @@ end
         hold off
         xlim([-7 11]),xticks([-5 0 6.5 9.2]);
         set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-        ylim([0.4 0.9]);
+        ylim([0.4 1]);
         xlabel('Patch location');
         legend('off');
     end
@@ -710,7 +710,7 @@ end
         hold off
         xlim([-7 11]),xticks([-5 0 6.5 9.2]);
         set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
-        ylim([0.4 0.9]);
+        ylim([0.4 1]);
         xlabel('Patch location');
         legend('off');
     end
