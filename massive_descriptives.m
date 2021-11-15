@@ -5,9 +5,9 @@
 
 
 function [out] = massive_descriptives(data)
-Results = data(data(:,11)~=0,:);
+addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
+Results = data;
 num_sub = length(unique(Results(:,1)));
-Results(:,9) = Results(:,8).*Results(:,9);
 
 %Find trials that presented N patches -- signal absent for hypo 1
 %Find trials that presented N patches -- signal absent for hypo 1
@@ -83,18 +83,6 @@ m_AP = mean(pcgAP_matrix,1);
 if num_sub>=3
 se_AP = std(pcgAP_matrix)/sqrt(num_sub);
 end
-
-% m_All = [reshape(m_AP,[8,1]) reshape(m_N,[8,1])];
-% %manually setting the x, y, and error for error bar
-% for a = 1:8
-%     ax(2.*a - 1)= a - 0.16;
-%     ax(2.*a) = a + 0.16;
-%     m_hypo1(2.*a-1) = m_AP(:,a);
-%     m_hypo1(2.*a) = m_N(a);
-%     se_hypo1(2.*a - 1) = se_AP(a);
-%     se_hypo1(2.*a) = se_N(a);
-% end
-
 
 colours = cbrewer('qual', 'Set1', 8); 
 out = figure;

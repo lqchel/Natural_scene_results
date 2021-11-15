@@ -3,52 +3,24 @@
 %%% for this function to work, please make sure to install PsychToolbox (http://psychtoolbox.org/)
 
 
-function out = AUC_matrix(data,exp)
+function out = AUC_matrix(data)
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer')); % add colour palatte package path
-if exp == 1
-    Results = data;
-    location1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;
-    location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 2;
-    eccentricity_level = zeros(length(Results),1)+ location1 + location2;
-    real_location1 = (Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8) .* 6.5;
-    real_location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
-    actual_eccentrcity = zeros(length(Results),1) + real_location1 + real_location2;
-    Results = [Results eccentricity_level actual_eccentrcity];
-    
-    Find_N = Results(:,5) ==1;
-    % present patch trials -- signal present for hypo 1
-    Find_CAP = Results(:,4) == 0 & Results(:,5) == 2; 
-    Find_IAP = Results(:,4) == 1 & Results(:,5) == 3; 
+   
+Results = data(data(:,11)~=0,:); %% exclude catch trials    
+Find_N = Results(:,5) ==1;
+% present patch trials -- signal present for hypo 1
+Find_CAP = Results(:,4) == 0 & Results(:,5) == 2; 
+Find_IAP = Results(:,4) == 1 & Results(:,5) == 3; 
 
-    %Congruent trial with Congruent object, and incongruent trial with
-    %incongruent object -- signal present for hypo 2
-    Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 3; %% Results(:,6) == 1 for exp 2
-    Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 3;
+%Congruent trial with Congruent object, and incongruent trial with
+%incongruent object -- signal present for hypo 2
+Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1; %% Results(:,6) == 1 for exp 2
+Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 
-    %Incongruent trial with congruent object, congruent trial with incongruent
-    %object -- signal absent for hypo 2
-    Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 3;
-    Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 3;
-    
-else
-    Results = data(data(:,11)~=0,:); %% exclude catch trials    
-
-    Find_N = Results(:,5) ==1;
-    % present patch trials -- signal present for hypo 1
-    Find_CAP = Results(:,4) == 0 & Results(:,5) == 2; 
-    Find_IAP = Results(:,4) == 1 & Results(:,5) == 3; 
-
-    %Congruent trial with Congruent object, and incongruent trial with
-    %incongruent object -- signal present for hypo 2
-    Find_Congruent_CP = Results(:,4) == 0 & Results(:,5) == 2 & Results(:,6) == 1; %% Results(:,6) == 1 for exp 2
-    Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
-
-    %Incongruent trial with congruent object, congruent trial with incongruent
-    %object -- signal absent for hypo 2
-    Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
-    Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
-
-end
+%Incongruent trial with congruent object, congruent trial with incongruent
+%object -- signal absent for hypo 2
+Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
+Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
 
 location = [0 1 2];
 
