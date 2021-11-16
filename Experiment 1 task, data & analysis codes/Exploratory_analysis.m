@@ -1,8 +1,8 @@
 %% get data
 % Results = importdata('Pooled Results 2.mat'); 
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results'));
-Results = importdata('Exp2_data.mat');
-Results = Results(Results(:,11)~=0,:);
+Results = get_data2(2);
+Results(:,9) = Results(:,8).*Results(:,9);
 Results(:,9) = Results(:,9) - 0.5;
 Results(:,9) = Results(:,8).*Results(:,9);
 img_id = unique(Results(:,11));
@@ -139,15 +139,6 @@ for img = 1:max(img_id)
         dist_values(c,:) = [pd.A pd.B]; 
         c = c+1;
         scale_values(condition) = pd.A; % record beta parameters for current image pair
-
-% 
-%         histogram(gradient_mag,256,'Normalization','pdf')
-%         hold on
-%         x = linspace(0,max(gradient_vector));
-%         plot(x,pdf(pd,x),'LineWidth',3);
-%         xlim([0 max(gradient_vector)]);
-%         pause(0.2)
-%         hold off
           
        clear current_img
        clear pd
@@ -160,7 +151,7 @@ for img = 1:max(img_id)
     
 end
 
-data_w = table([cong_delta.delta; incong_delta.delta],[weibull_stat(:,2);weibull_stat(:,2)],categorical([ones(length(img_id),1); 1+ones(length(img_id),1)]),'VariableNames',...
+data_w = table([cong_delta.delta; incong_delta.delta],[weibull_stat(:,2);weibull_stat(:,2)],categorical([zeros(length(img_id),1); ones(length(img_id),1)]),'VariableNames',...
     {'delta','weibull','congruence'});
 lm1 = fitlme(data_w,'delta~weibull*congruence + (1|weibull) + (1|congruence)')
 lm_w = fitlme(data_w,'delta ~ weibull:congruence + congruence + (1|weibull) + (1|congruence)')
@@ -178,37 +169,14 @@ w_effects = fixedEffects(lm1);
 scatter(weibull_stat(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
 hold on
 scatter(weibull_stat(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
-plot([0 180],[w_effects(1,:) 180.*w_effects(2,:) + w_effects(1,:)],'Color',line_colour(1,:),'LineWidth',2);
+plot([0 180],[w_effects(1,:) 180.*w_effects(2,:) + w_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([0 180],[w_effects(1,:)+w_effects(3,:) 180.*(w_effects(2,:) + w_effects(4,:)) + w_effects(1,:) + w_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
 hold off
-set(gca,'FontName','Arial','FontSize',12);
+set(gca,'FontName','Arial','FontSize',14);
 ylim([-4 6]),xlim([0 180]);
 xlabel('Weibull Scale Parameter Value');
 ylabel('\DeltatDxC');
-legend({'Congruent','Incongruent','Effect of Weibull'})
-
-% subplot(2,3,2)
-% [r,p] = corrcoef(weibull_stat(:,3),incong_delta.delta);
-% scatter(weibull_stat(:,3),incong_delta.delta)
-% h2 = lsline;
-% h2.Color = 'r';
-% h2.LineWidth = 1.2;
-% title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
-% set(gca,'FontName','Arial','FontSize',12);
-% ylim([-4 6]),xlim([0 180]);
-% xlabel('Weibull Scale Parameter');
-% ylabel(['\Delta' 'Incong']);
-% 
-% subplot(2,3,3)
-% scatter(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
-% h3 = lsline;
-% h3.Color = 'r';
-% h3.LineWidth = 1.2;
-% [r,p] = corrcoef(mean(weibull_stat(:,2:3),2), mean([cong_delta.delta incong_delta.delta],2));
-% title(['r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
-% set(gca,'FontName','Arial','FontSize',12);
-% ylim([-4 6]),xlim([0 180]);
-% xlabel('Mean Weibull Scale Parameter');
-% ylabel(['mean' '(' '\Delta' 'Cong' '+' '\Delta' 'Incong' ')']);
+legend({'Congruent','Incongruent'},'box','off')
 
 %%%% plot beta and gemma values of weibull distribution
 
@@ -272,7 +240,6 @@ for img = 1:length(img_id)
     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
     images = {imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]) difference_mat};
     difference = sum(difference_mat,3);
-    range = quantile(difference, [0.95 1],  'all');
     current_object_size = (sum(sum(difference > 100)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
@@ -280,6 +247,35 @@ for img = 1:length(img_id)
     clear current_object_size
     clear difference_mat
 end
+
+data_o = table([cong_delta.delta; incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([zeros(length(img_id),1); ones(length(img_id),1)]),'VariableNames',...
+    {'delta','size','congruence'});
+lm3 = fitlme(data_o,'delta~size*congruence + (1|size) + (1|congruence)')
+lm_o = fitlme(data_o,'delta ~ size:congruence + congruence + (1|size) + (1|congruence)')
+lm_c = fitlme(data_o,'delta ~ size:congruence + size +  (1|size) + (1|congruence)')
+lm_in = fitlme(data_o,'delta ~ size + congruence + (1|size) + (1|congruence)')
+
+size_effect = compare(lm_o, lm3)
+congruence_effect = compare(lm_c,lm3)
+interaction_effect = compare(lm_in,lm3)
+
+subplot(1,2,1)
+dot_colours = cbrewer('qual','Set2',8);
+line_colour = cbrewer('qual','Set1',8);
+o_effects = fixedEffects(lm3);
+x_max = max(object_size(:,2)) + 0.01;
+scatter(object_size(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
+hold on
+scatter(object_size(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
+plot([0 x_max],[o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([0 x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
+hold off
+set(gca,'FontName','Arial','FontSize',14);
+ylim([-4 6]),xlim([0 x_max]);
+xlabel('Object Size (Proportion in Image)');
+ylabel('\DeltatDxC');
+legend({'Congruent','Incongruent','Image Stat Effect, Cong','Image Stat Effect, Incong'},'box','off')
+
 
 %% plotting object size examples
 b = 1;
@@ -328,43 +324,6 @@ end
 % d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(selected_img),1); 1+ones(length(selected_img),1)]),'VariableNames',{'delta','size','congruence'});
 % lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
 
-% subplot(2,3,1)
-% [r,p] = corrcoef(object_size(:,2),cong_delta.delta);
-% scatter(object_size(:,2),cong_delta.delta);
-% h1 = lsline;
-% h1.Color = 'r';
-% h1.LineWidth = 1.2;
-% title(['Congruent, r = ' num2str(round(r(1,2),2)) ', p = ' num2str(round(p(1,2),2))]);
-% set(gca,'FontName','Arial','FontSize',12);
-% % ylim([-4 6]),xlim([0 0.9]);
-% xlabel('Critical object size (% in image)');
-% % ylabel('\Delta' 'tDxC');
-% 
-% subplot(2,3,2)
-% [r2,p2] = corrcoef(object_size(:,2),incong_delta.delta);
-% scatter(object_size(:,2),incong_delta.delta);
-% h2 = lsline;
-% h2.Color = 'r';
-% h2.LineWidth = 1.2;
-% title(['Incongruent, r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2))]);
-% set(gca,'FontName','Arial','FontSize',12);
-% % ylim([-4 6]),xlim([0 0.9]);
-% xlabel('Critical object size (% in image)');
-% % ylabel('\Delta tDxC');
-% 
-% subplot(2,3,3)
-% scatter([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
-% h3 = lsline;
-% h3.Color = 'r';
-% h3.LineWidth = 1.2;
-% [r3,p3] = corrcoef([object_size(:,2); object_size(:,2)], [cong_delta.delta; incong_delta.delta]);
-% title(['All images, r = ' num2str(round(r3(1,2),2)) ', p = ' num2str(round(p3(1,2),2))]);
-% set(gca,'FontName','Arial','FontSize',12);
-% % ylim([-4 6]),xlim([0 0.9]);
-% xlabel('Critical object size (% in image)');
-% % ylabel('\Delta tDxC');
-
-% 
 % 
 % 
 %% calculate sailiency difference statistics for each image
@@ -437,9 +396,11 @@ x_max = max(saliency_stat(:,2))+10000;
 scatter(saliency_stat(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
 hold on
 scatter(saliency_stat(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
-plot([0 x_max],[s_effects(1,:) x_max.*s_effects(2,:) + s_effects(1,:)],'Color',line_colour(1,:),'LineWidth',2);
+plot([0 x_max],[s_effects(1,:) x_max.*s_effects(2,:) + s_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([0 x_max],[s_effects(1,:)+s_effects(3,:) x_max.*(s_effects(2,:) + s_effects(4,:)) + s_effects(1,:) + s_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
+
 hold off
-set(gca,'FontName','Arial','FontSize',12);
+set(gca,'FontName','Arial','FontSize',14);
 ylim([-4 6]),xlim([0 x_max]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
 ylabel('\DeltatDxC');
@@ -448,8 +409,10 @@ legend({'Congruent','Incongruent','Effect of Image Stat'})
 
 
 %% plotting images and saliency
+addpath(genpath('C:\Users\liang\Documents\Experiment Codes\SaliencyToolbox'));
 final_salmap = [];
-for img = 1:1
+
+for img = 5:5
 images{1} = imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]);
 images{2} = imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
 images{3} = abs(images{1} - images{2});
@@ -497,11 +460,11 @@ for condition = 1:3
     ax2 = axes('Position',[0.015+(condition-1).*0.3 0.1 0.3 0.3]);
     image(ax2,final_salmap{condition});
     colormap gray
-    if condition == 3
-        hold on
-        plot(ax2,column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
-        hold off
-    end
+%     if condition == 3
+%         hold on
+%         plot(ax2,column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
+%         hold off
+%     end
     axis square
     set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
@@ -515,62 +478,6 @@ end
 % axis square
 end
 
-%% analyse and plot image statistics vs. variance in congruence effects
-
-% weibull
-[r1,p1] = corrcoef(abs(weibull_stat(:,2)-weibull_stat(:,3)),abs(cong_delta.delta-incong_delta.delta));
-subplot(1,2,1),scatter(abs(weibull_stat(:,2)-weibull_stat(:,3)),abs(cong_delta.delta-incong_delta.delta));
-h1 = lsline;
-h1.Color = 'r';
-h1.LineWidth = 1.2;
-title(['r = ' num2str(round(r1(1,2),2)) ', p = ' num2str(round(p1(1,2),2))]);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([0 6]),xlim([0 30]);
-xlabel('|\DeltaWeibull(Cong - Incong)|');
-ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
-
-% saliency
-[r2,p2] = corrcoef(saliency_stat(:,3),cong_delta.delta-incong_delta.delta);
-subplot(1,2,2), scatter(saliency_stat(:,3),cong_delta.delta-incong_delta.delta);
-h2 = lsline;
-h2.Color = 'r';
-h2.LineWidth = 1.2;
-title(['r = ' num2str(round(r2(1,2),2)) ', p = ' num2str(round(p2(1,2),2)) '*']);
-set(gca,'FontName','Arial','FontSize',12);
-ylim([0 6])%xlim([0 max(saliency_stat(:,3))+ 10000]);
-xlabel('|\DeltaSaliency(Cong - Incong)|');
-ylabel(['|' '\Delta' 'Cong - ' '\Delta' 'Incong' '|']);
-% 
-% data = table(mean(weibull_stat(:,2:3),2), mean(weibull_stat(:,2:3),2)^2,abs(cong_delta.delta-incong_delta.delta),img_id,'VariableNames',{'W1','W2','delta','image'});
-% lm1 = fitlme(data,'delta ~ W1^2 + (1|W1)')
-% weibull
-% 
-% data1 = table(saliency_stat(:,3)/10^7,(saliency_stat(:,3)/10^7).^2, abs(cong_delta.delta-incong_delta.delta),img_id,'VariableNames',{'Saliency','Saliency2','delta','image'});
-% lm2 = fitlme(data1,'delta ~ Saliency^2 + (1|Saliency)')
-% qua_s = fitlme(data1,'delta ~ Saliency + (1|Saliency)')
-% lin_s = fitlme(data1,'delta ~ Saliency2 + (1|Saliency)')
-% compare(qua_s,lm2)
-% compare(lin_s,lm2)
-% 
-data2 = table(saliency_stat(:,3),cong_delta.delta-incong_delta.delta,'VariableNames',{'Saliency','delta'})
-lm3 = fitlme(data2,'delta ~ Saliency + (1|Saliency)')
-%% plot results plotting the lines
-colours = cbrewer('qual', 'Set1', 8);
-[Y1,edges] = histcounts(delta_1(:,1),max(img_id));
-Y1_cumulative  = cumsum(Y1);
-plot(edges,[Y1_cumulative max(img_id)],'LineWidth',1.2,'Color',colours(2,:));
-
-hold on
-[Y2,edges] = histcounts(delta_2(:,1),max(img_id));
-Y2_cumulative  = cumsum(Y2);
-plot(edges,[Y2_cumulative max(img_id)],'LineWidth',1.2,'Color',colours(1,:));
-hold off
-box off
-
-xlabel(['\Delta','tD×C (Original - Modified)']), ylabel('Cumulative counts');
-set(gca,'FontName','Arial','FontSize',12);
-xlim([-7 7]);
-legend({'Congruent','Incongruent'},'Box','off','Location','northwest');
 
 %% display images based on delta rcBxC
 % load image list
@@ -700,80 +607,3 @@ end
 end
 
 end
-%%
-%incongruent
-for i = 1:16
-
-for p = 1:5
-    current_cong= imresize(imread(fullfile(folder1,theFiles1(delta_2_x((i-1).*5+p,2)).name)),[150 150]);
-    ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]);
-    image(ax1,current_cong);
-    axis square
-    title({['delta = ', num2str(round(delta_2_x((i-1).*5 + p,1),1)), ', ', num2str(round(delta_2_x((i-1).*5 + p,3),1)), ' dva']});
-    set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-    xticks([]),yticks([]);
-    
-    current_incong= imresize(imread(fullfile(folder2,theFiles2(delta_2_x((i-1).*5+p,2)).name)),[150 150]);
-    ax2= axes('Position',[0.015+(p-1).*0.19 0.3 0.2 0.2]);
-    image(ax2,current_incong);
-    axis square
-    set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-    xticks([]),yticks([]);
-
-end
-
-    if i < 10
-        filename = ['incong_0', num2str(i),'.jpg'];
-    else
-        filename = ['incong_', num2str(i), '.jpg'];
-    end
-    saveas(gcf,filename);
-    clf;
-end
-
-%% create scatterplot, by cong and incong conditions
-
-c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
-c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
-c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
-c_y_i_y = cong_delta.significance < 0.05 & incong_delta.significance < 0.05;
-x_lim = [-2 6];
-y_lim = [-4 6];
-
-temp_colour = cbrewer('qual', 'Set1', 9);
-line_colour = cbrewer('qual','Set2',8);
-sz = 50;
-plot([0 0],y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5); % add x = 0 line
-hold on
-plot(x_lim,[0 0],'--','Color',line_colour(3,:),'LineWidth',1.5); % y = 0
-plot(x_lim,x_lim,'--','Color',line_colour(3,:),'LineWidth',1.5); % x = y
-scatter(cong_delta.delta(c_n_i_n,1),incong_delta.delta(c_n_i_n,1),[],temp_colour(9,:),'filled','LineWidth',1.2)
-scatter(cong_delta.delta(c_n_i_y,1),incong_delta.delta(c_n_i_y,1),[],'red','filled','LineWidth',1.2);
-scatter(cong_delta.delta(c_y_i_n,1),incong_delta.delta(c_y_i_n,1),[],'blue','filled','LineWidth',1.2);
-scatter(cong_delta.delta(c_y_i_y,1),incong_delta.delta(c_y_i_y,1),[],'black','filled','LineWidth',1.2);
-scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(condition_significance < 0.05,1),95,'ks','LineWidth',0.8);
-hold off
-
-xlabel(['\Delta' 'tDxC in congruent images']), ylabel(['\Delta' 'tDxC in incongruent images']);
-set(gca,'FontName','Arial','FontSize',16,'Box','off');
-xlim(x_lim), ylim(y_lim);
-[r,p] = corrcoef(cong_delta.delta(~c_n_i_n,1), incong_delta.delta(~c_n_i_n,1))
-[r,p] = corrcoef(cong_delta.delta, incong_delta.delta);
-
-%% create scatterplot, by stimulus locations
-
-plot([0 0],y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5);
-hold on
-plot(x_lim,[0 0],'--','Color',line_colour(3,:),'LineWidth',1.5);
-plot(x_lim,x_lim,'--','Color',line_colour(3,:),'LineWidth',1.5);
-scatter(cong_delta.delta(cong_delta.eccentricity == 0),incong_delta.delta(incong_delta.eccentricity == 0),[],'red','filled','LineWidth',1.2);
-scatter(cong_delta.delta(cong_delta.eccentricity == 1),incong_delta.delta(incong_delta.eccentricity == 1),[],'blue','filled','LineWidth',1.2);
-scatter(cong_delta.delta(cong_delta.eccentricity == 2),incong_delta.delta(incong_delta.eccentricity == 2),[],'black','filled','LineWidth',1.2);
-scatter(cong_delta.delta(condition_significance < 0.05,1),incong_delta.delta(condition_significance < 0.05,1),95,'ks','LineWidth',0.8);
-hold off
-xlabel(['\Delta' 'tDxC in congruent images']), ylabel(['\Delta' 'tDxC in incongruent images']);
-set(gca,'FontName','Arial','FontSize',16,'Box','off');
-xlim(x_lim), ylim(y_lim)
-
-[r,p] = corrcoef([cong_delta.eccentricity; incong_delta.eccentricity],[cong_delta.delta; incong_delta.delta])
-

@@ -12,6 +12,7 @@ if Exp == 1
     real_location2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 9.2;
     actual_eccentrcity = zeros(length(Results),1) + real_location1 + real_location2;
     Results = [Results eccentricity_level actual_eccentrcity];
+    Results(:,11) = Results(:,2);
 elseif Exp == 2
     Results = importdata('Exp2_data.mat');
     Results = Results(Results(:,11)~=0,:);
