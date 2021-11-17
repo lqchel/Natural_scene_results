@@ -172,11 +172,11 @@ scatter(weibull_stat(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),
 plot([0 180],[w_effects(1,:) 180.*w_effects(2,:) + w_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
 plot([0 180],[w_effects(1,:)+w_effects(3,:) 180.*(w_effects(2,:) + w_effects(4,:)) + w_effects(1,:) + w_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
 hold off
-set(gca,'FontName','Arial','FontSize',14);
-ylim([-4 6]),xlim([0 180]);
+set(gca,'FontName','Arial','FontSize',16);
+ylim([-6 6]),xlim([0 180]);
 xlabel('Weibull Scale Parameter Value');
 ylabel('\DeltatDxC');
-legend({'Congruent','Incongruent'},'box','off')
+
 
 %%%% plot beta and gemma values of weibull distribution
 
@@ -233,99 +233,6 @@ for i = 1:length(sel_img)
     set(gca,'FontName','Arial','FontSize',14);
     axis square
 end
-
-%% calculate critical object sizes
-b = 1;
-for img = 1:length(img_id) 
-    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
-    images = {imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]) difference_mat};
-    difference = sum(difference_mat,3);
-    current_object_size = (sum(sum(difference > 100)))/(150^2);   
-    object_size(b,:) = [img current_object_size];
-    b = b+1;
-    
-    clear current_object_size
-    clear difference_mat
-end
-
-data_o = table([cong_delta.delta; incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([zeros(length(img_id),1); ones(length(img_id),1)]),'VariableNames',...
-    {'delta','size','congruence'});
-lm3 = fitlme(data_o,'delta~size*congruence + (1|size) + (1|congruence)')
-lm_o = fitlme(data_o,'delta ~ size:congruence + congruence + (1|size) + (1|congruence)')
-lm_c = fitlme(data_o,'delta ~ size:congruence + size +  (1|size) + (1|congruence)')
-lm_in = fitlme(data_o,'delta ~ size + congruence + (1|size) + (1|congruence)')
-
-size_effect = compare(lm_o, lm3)
-congruence_effect = compare(lm_c,lm3)
-interaction_effect = compare(lm_in,lm3)
-
-subplot(1,2,1)
-dot_colours = cbrewer('qual','Set2',8);
-line_colour = cbrewer('qual','Set1',8);
-o_effects = fixedEffects(lm3);
-x_max = max(object_size(:,2)) + 0.01;
-scatter(object_size(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
-hold on
-scatter(object_size(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
-plot([0 x_max],[o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
-plot([0 x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
-hold off
-set(gca,'FontName','Arial','FontSize',14);
-ylim([-4 6]),xlim([0 x_max]);
-xlabel('Object Size (Proportion in Image)');
-ylabel('\DeltatDxC');
-legend({'Congruent','Incongruent','Image Stat Effect, Cong','Image Stat Effect, Incong'},'box','off')
-
-
-%% plotting object size examples
-b = 1;
-% selected_img = [2 5 12 34 42 35];
-selected_img = 5;
- for img = 1:1 %length(selected_img) 
-    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150]));
-    difference = sum(difference_mat,3);
-    current_object_size = (sum(sum(difference > 100)))/(150^2);   
-    object_size(b,:) = [img current_object_size];
-    b = b+1;
-%     [Y1(img,:),edges(img,:)] = histcounts(difference,150^2);
-    image_titles = {'RGB difference','Detected object area'};
-    figure('Color','white');
-    [row1,column1] = find(difference>100);
-    for condition = 1:2
-        ax1= axes('Position',[0.02+(condition-1).*0.45 0.3 0.45 0.45]);
-        image(ax1,difference_mat);
-        if condition == 2
-            hold on
-            scatter(ax1,column1,row1,3,'MarkerFaceColor','red','MarkerEdgeColor','red');
-            hold off
-        end   
-        axis square
-        set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-        xticks([]),yticks([]);
-        title(image_titles{condition});
-    end
-    
-    clear current_object_size
-    clear difference_mat
-end
-
-
-
-%%% uncomment for plotting mean RGB difference across image pairs
-% Y1_cumulative  = cumsum(mean(Y1,1));
-% mean_edges = mean(edges,1);
-% figure('Color','white');
-% plot(mean_edges,[Y1_cumulative 150^2],'LineWidth',1.2);
-% xlabel('Mean RGB difference across images'), ylabel('Counts');
-% set(gca,'FontName','Arial','FontSize',14);
-
-
-    
-% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(selected_img),1); 1+ones(length(selected_img),1)]),'VariableNames',{'delta','size','congruence'});
-% lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
-
-% 
-% 
 %% calculate sailiency difference statistics for each image
 %%%% require SaliencyToolbox 2.3 by Itti et al
 %%%% download link: http://www.saliencytoolbox.net/doc/index.html
@@ -400,11 +307,10 @@ plot([0 x_max],[s_effects(1,:) x_max.*s_effects(2,:) + s_effects(1,:)],'Color',l
 plot([0 x_max],[s_effects(1,:)+s_effects(3,:) x_max.*(s_effects(2,:) + s_effects(4,:)) + s_effects(1,:) + s_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
 
 hold off
-set(gca,'FontName','Arial','FontSize',14);
-ylim([-4 6]),xlim([0 x_max]);
+set(gca,'FontName','Arial','FontSize',16);
+ylim([-6 6]),xlim([0 x_max]);
 xlabel('|\DeltaSaliency(Cong - Incong)|');
 ylabel('\DeltatDxC');
-legend({'Congruent','Incongruent','Effect of Image Stat'})
 
 
 
@@ -478,6 +384,99 @@ end
 % axis square
 end
 
+
+%% calculate critical object sizes
+b = 1;
+for img = 1:length(img_id) 
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
+    images = {imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]) difference_mat};
+    difference = sum(difference_mat,3);
+    current_object_size = (sum(sum(difference > 100)))/(150^2);   
+    object_size(b,:) = [img current_object_size];
+    b = b+1;
+    
+    clear current_object_size
+    clear difference_mat
+end
+
+data_o = table([cong_delta.delta; incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([zeros(length(img_id),1); ones(length(img_id),1)]),'VariableNames',...
+    {'delta','size','congruence'});
+lm3 = fitlme(data_o,'delta~size*congruence + (1|size) + (1|congruence)')
+lm_o = fitlme(data_o,'delta ~ size:congruence + congruence + (1|size) + (1|congruence)')
+lm_c = fitlme(data_o,'delta ~ size:congruence + size +  (1|size) + (1|congruence)')
+lm_in = fitlme(data_o,'delta ~ size + congruence + (1|size) + (1|congruence)')
+
+size_effect = compare(lm_o, lm3)
+congruence_effect = compare(lm_c,lm3)
+interaction_effect = compare(lm_in,lm3)
+
+subplot(1,2,1)
+dot_colours = cbrewer('qual','Set2',8);
+line_colour = cbrewer('qual','Set1',8);
+o_effects = fixedEffects(lm3);
+x_max = max(object_size(:,2)) + 0.01;
+scatter(object_size(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
+hold on
+scatter(object_size(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
+plot([0 x_max],[o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([0 x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
+hold off
+set(gca,'FontName','Arial','FontSize',16);
+ylim([-6 6]),xlim([0 x_max]);
+xlabel('Object Size (Proportion in Image)');
+ylabel('\DeltatDxC');
+% legend({'Congruent','Incongruent','Image Stat Effect, Cong','Image Stat Effect, Incong'},'box','off')
+
+
+%% plotting object size examples
+b = 1;
+% selected_img = [2 5 12 34 42 35];
+selected_img = 5;
+ for img = 1:1 %length(selected_img) 
+    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150]));
+    difference = sum(difference_mat,3);
+    current_object_size = (sum(sum(difference > 100)))/(150^2);   
+    object_size(b,:) = [img current_object_size];
+    b = b+1;
+%     [Y1(img,:),edges(img,:)] = histcounts(difference,150^2);
+    image_titles = {'RGB difference','Detected object area'};
+    figure('Color','white');
+    [row1,column1] = find(difference>100);
+    for condition = 1:2
+        ax1= axes('Position',[0.02+(condition-1).*0.45 0.3 0.45 0.45]);
+        image(ax1,difference_mat);
+        if condition == 2
+            hold on
+            scatter(ax1,column1,row1,3,'MarkerFaceColor','red','MarkerEdgeColor','red');
+            hold off
+        end   
+        axis square
+        set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+        xticks([]),yticks([]);
+        title(image_titles{condition});
+    end
+    
+    clear current_object_size
+    clear difference_mat
+end
+
+
+
+%%% uncomment for plotting mean RGB difference across image pairs
+% Y1_cumulative  = cumsum(mean(Y1,1));
+% mean_edges = mean(edges,1);
+% figure('Color','white');
+% plot(mean_edges,[Y1_cumulative 150^2],'LineWidth',1.2);
+% xlabel('Mean RGB difference across images'), ylabel('Counts');
+% set(gca,'FontName','Arial','FontSize',14);
+
+
+    
+% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(selected_img),1); 1+ones(length(selected_img),1)]),'VariableNames',{'delta','size','congruence'});
+% lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
+
+% 
+% 
 
 %% display images based on delta rcBxC
 % load image list
