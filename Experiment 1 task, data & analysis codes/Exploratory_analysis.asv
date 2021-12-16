@@ -612,14 +612,14 @@ end
 end
 
 %%
-subplot(1,2,1),scatter(cong_delta.eccentricity, object_size(:,2),'MarkerEdgeColor','blue','MarkerFaceColor','blue','jitter','on','jitterAmount',0.2,'MarkerFaceAlpha',0.3);
+subplot(1,2,1),scatter(cong_delta.eccentricity, object_size(:,2),'MarkerEdgeColor','blue','MarkerFaceColor','blue');
 xlim([-0.5 2.5]),xticks([0 1 2]);
 set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
 ylabel('Object size (proportion in image)')
 
-subplot(1,2,2),scatter(cong_delta.eccentricity,cong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
+scatter(cong_delta.eccentricity,cong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.1);
 hold on
-scatter(incong_delta.eccentricity,incong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
+scatter(incong_delta.eccentricity,incong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.1);
 hold off
 xlim([-0.5 2.5]),xticks([0 1 2]);
 set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');

@@ -153,6 +153,7 @@ clear delta_2
 clear cong_delta
 clear incong_delta
 clear Results
+
 % %% create scatterplot, by stimulus locations
 % 
 % plot([0 0],y_lim,'--','Color',line_colour(3,:),'LineWidth',1.5);

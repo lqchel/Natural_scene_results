@@ -27,8 +27,6 @@ location = [0 1 2];
 subject_id = unique(Results(:,1));
 num_sub = length(subject_id);
 
-Results(:,9) = Results(:,8).*Results(:,9);
-
 Results_NC = Results(Find_N,:); % find absent patches
 Results_APC = Results(Find_IAP|Find_CAP,:); % find present patches
 
@@ -61,7 +59,7 @@ for sub = 1:num_sub
     Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
     Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix1(b,:)= [sub -1 -1 AUC]; % subject number, eccentricity level, actual eccentricity level, AUC 
+    matrix1(b,:)= [sub -1 AUC]; % subject number, eccentricity level, actual eccentricity level, AUC 
     b = b+1;
 
 end
@@ -99,7 +97,7 @@ for a = 1:3
     Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
     Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix2(b,:)= [sub location(a) unique(indvN(indvN(:,13)== location(a),14)) AUC];
+    matrix2(b,:)= [sub location(a) AUC];
     b = b+1;
     
 clear Confidence_P
@@ -151,7 +149,7 @@ Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
 Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
 AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
 
-matrix3(b,:) = [sub condition -1 -1 AUC];
+matrix3(b,:) = [sub condition -1 AUC];
 b = b+1;
 
 clear Confidence_P
@@ -203,7 +201,7 @@ for a = 1:3
         Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
         Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
         AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-        matrix4(b,:)= [sub 1 location(a) indvN_loc(1,14) AUC];
+        matrix4(b,:)= [sub 1 location(a) AUC];
         b = b+1;
 
 clear Confidence_P
@@ -263,7 +261,7 @@ for a = 1:3
     Cumulative_Hit = [0 Cumulative_Hit(1:4) Cumulative_Hit(6:9)];
     Cumulative_FA = [0 Cumulative_FA(1:4) Cumulative_FA(6:9)];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix5(b,:)= [sub 2 location(a) indvN_loc(1,14) AUC];
+    matrix5(b,:)= [sub 2 location(a) AUC];
     b = b+1;
 clear Confidence_P
 clear Confidence_A
@@ -319,7 +317,7 @@ for sub = 1:num_sub
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
 
-    matrix6(b,:)= [sub -1 -1 AUC]; % subject number, eccentricity level, actual ecc, AUC
+    matrix6(b,:)= [sub -1 AUC]; % subject number, eccentricity level, AUC
     b = b+1;
 %     hit_matrix(sub,:,a) = Cumulative_Hit;
 %     FA_matrix(sub,:,a) = Cumulative_FA;
@@ -365,7 +363,7 @@ for a = 1:3
     Cumulative_Hit = [0 Cumulative_Hit];
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix7(b,:)= [sub location(a) unique(Results_Correct(Results_Correct(:,1)==subject_id(sub)& Results_Correct(:,13)==location(a),14)) AUC]; % subject number, eccentricity level, actual ecc, AUC
+    matrix7(b,:)= [sub location(a) AUC]; % subject number, eccentricity level, actual ecc, AUC
     b = b+1;
 %     hit_matrix(sub,:,a) = Cumulative_Hit;
 %     FA_matrix(sub,:,a) = Cumulative_FA;
@@ -422,7 +420,7 @@ for condition = 1:2
         Cumulative_Hit = [0 Cumulative_Hit];
         Cumulative_FA = [0 Cumulative_FA];
         AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-        matrix8(b,:)= [sub condition -1 -1 AUC]; % create matrix for individual AUCs
+        matrix8(b,:)= [sub condition -1 AUC]; % create matrix for individual AUCs
         b = b+1;
         clear Confidence_Correct
         clear Confidence_Incorrect
@@ -472,7 +470,7 @@ for condition = 1:3
     Cumulative_Hit = [0 Cumulative_Hit];
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix9(b,:)= [sub 1 location(condition) unique(Results(Results(:,13)== location(condition) & Results(:,1) == subject_id(sub),14)) AUC]; % create matrix for individual AUCs
+    matrix9(b,:)= [sub 1 location(condition) AUC]; % create matrix for individual AUCs
     b = b+1;
     
 clear Confidence_Correct
@@ -525,7 +523,7 @@ for condition = 1:3
     Cumulative_Hit = [0 Cumulative_Hit];
     Cumulative_FA = [0 Cumulative_FA];
     AUC = round(AreaUnderROC([Cumulative_Hit; Cumulative_FA]'),2);
-    matrix0(b,:)= [sub 2 location(condition) unique(Results(Results(:,13)== location(condition)&Results(:,1) == subject_id(sub),14)) AUC]; % create matrix for individual AUCs
+    matrix0(b,:)= [sub 2 location(condition) AUC]; % create matrix for individual AUCs
     b = b+1;
 clear Confidence_Correct
 clear Confidence_Incorrect

@@ -69,11 +69,11 @@ condition_h2_t1 = compare(lme_h2_t1_condition,lme_h2_t1_full)
 
 % congruent
 data = sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1 & sub_AUC.hypo2_Type1(:,2) == 1,:);
-AUC_lme([data(:,1) data(:,3:4)],1,1)
+AUC_lme([data(:,1) data(:,3:4)],1)
 
 % incongruent
 data = sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,3)~= -1 & sub_AUC.hypo2_Type1(:,2) == 2,:);
-AUC_lme([data(:,1) data(:,3:4)],1,1)
+AUC_lme([data(:,1) data(:,3:4)],1)
 
 %% check no responses no modifid patches only
 
@@ -90,21 +90,21 @@ condition_data = Results(index{1},:);
 for loc = 1:3
     for sub = 1:length(subject_id)
         current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
-        mt(b,:)= [sub location(loc) sum(current_sub_data(:,8) == -1)/length(current_sub_data(:,8))];
+        mat(b,:)= [sub location(loc) sum(current_sub_data(:,8) == -1)/length(current_sub_data(:,8))];
         b = b+1;
     end
 end
-AUC_lme(mt,1)
+AUC_lme(mat,1)
 
 condition_data = Results(index{2},:);
 for loc = 1:3
     for sub = 1:length(subject_id)
         current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
-        mt(b,:)= [sub location(loc) sum(current_sub_data(:,8) == 1)/length(current_sub_data(:,8))];
+        mat(b,:)= [sub location(loc) sum(current_sub_data(:,8) == 1)/length(current_sub_data(:,8))];
         b = b+1;
     end
 end
-AUC_lme(mt,1)
+AUC_lme(mat,1)
 
 %% hypo 2, type 2
 
@@ -175,5 +175,3 @@ incongse_h2t2 = std(sub_AUC.hypo2_Type2(sub_AUC.hypo2_Type2(:,3)== -1 & sub_AUC.
     sub_AUC_1.hypo2_Type1(:,3) == 1, 5),'alpha', 0.0125)
 [h4,p4] = kstest2(sub_AUC.hypo2_Type1(sub_AUC.hypo2_Type1(:,2) == 2 & sub_AUC.hypo2_Type1(:,3) == 2, 5),sub_AUC_1.hypo2_Type1(sub_AUC_1.hypo2_Type1(:,2) == 2 &...
     sub_AUC_1.hypo2_Type1(:,3) == 2, 5),'alpha', 0.0125)
-
-
