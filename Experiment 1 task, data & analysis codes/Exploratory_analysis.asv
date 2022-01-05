@@ -382,7 +382,6 @@ end
 b = 1;
 for img = 1:length(img_id) 
     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
-    images = {imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]) difference_mat};
     difference = sum(difference_mat,3);
     current_object_size = (sum(sum(difference > 100)))/(150^2);   
     object_size(b,:) = [img current_object_size];
@@ -404,53 +403,77 @@ congruence_effect = compare(lm_c,lm3)
 interaction_effect = compare(lm_in,lm3)
 
 subplot(1,2,1)
-dot_colours = cbrewer('qual','Set2',8);
-line_colour = cbrewer('qual','Set1',8);
-o_effects = fixedEffects(lm3);
-x_max = max(object_size(:,2)) + 0.01;
-scatter(object_size(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
-hold on
-scatter(object_size(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
-plot([0 x_max],[o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
-plot([0 x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
-hold off
-set(gca,'FontName','Arial','FontSize',16);
-ylim([-6 6]),xlim([0 x_max]);
-xlabel('Object Size (Proportion in Image)');
-ylabel('\DeltatDxC');
+
 % legend({'Congruent','Incongruent','Image Stat Effect, Cong','Image Stat Effect, Incong'},'box','off')
 
 
 %% plotting object size examples
 b = 1;
-% selected_img = [2 5 12 34 42 35];
+%selected_img = [2 5 12 34 42 35];
 selected_img = 5;
- for img = 1:1 %length(selected_img) 
-    difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150]));
-    difference = sum(difference_mat,3);
+image_titles = {'Congruent','Incongruent','RGB difference','Detected object area',['\Delta' 'RGB difference histogram']};
+
+ for img = 1:length(selected_img)
+    images = {imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150])};
+    images{3} = abs(images{1} - images{2});
+    difference = sum(images{3},3);
     current_object_size = (sum(sum(difference > 100)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
-%     [Y1(img,:),edges(img,:)] = histcounts(difference,150^2);
-    image_titles = {'RGB difference','Detected object area'};
     figure('Color','white');
-    [row1,column1] = find(difference>100);
-    for condition = 1:2
-        ax1= axes('Position',[0.02+(condition-1).*0.45 0.3 0.45 0.45]);
-        image(ax1,difference_mat);
-        if condition == 2
+    
+    for i = 1:5
+        if i < 4
+            ax1= axes('Position',[0.015+(i-1).*0.16 0.49 0.2 0.2]); % fix axes position in figure window
+            image(ax1,images{i});
+            xticks([]),yticks([]);
+            set(gca, 'XColor','white','YColor','white')
+            box off;
+        elseif i == 4
+            ax1= axes('Position',[0.015+(i-1).*0.163 0.49 0.2 0.2]); % fix axes position in figure window
+            [row1,column1] = find(difference>100);
+            image(ax1,images{3});
             hold on
-            scatter(ax1,column1,row1,3,'MarkerFaceColor','red','MarkerEdgeColor','red');
+            scatter(column1,row1,3,'MarkerFaceColor','red','MarkerEdgeColor','red');
             hold off
-        end   
+            xticks([]),yticks([]);
+            set(gca, 'XColor','white','YColor','white')
+            box off
+        else
+            ax2 = axes('Position',[0.02+(i-1).*0.18 0.49 0.2 0.2]); % fix axes position in figure window)
+            [Y1,edges] = histcounts(difference,150^2);
+            Y1_cumulative  = cumsum(Y1)/150^2;
+            plot(ax2,[Y1_cumulative 1],edges,'LineWidth',2);
+            xlim([0.92 1]), ylim([0 800]);
+            yticks([0 200 400 600])
+            xlabel('Percentage'), ylabel(['\Delta''RGB difference']);
+            hold on
+            plot([0.92 1],[100 100], 'r--','LineWidth', 1.5);
+            hold off
+% 
+%             [Y1,edges] = histcounts(difference,150^2);
+%             Y1_cumulative  = cumsum(Y1)/150^2;
+%             subplot(1,5,i),plot([Y1_cumulative 150^2],edges,'LineWidth',1.5);
+%             xlim([0 1]), ylim([0 500]);
+%             xlabel('Percentage'), ylabel('Sum RGB difference');
+%             hold on
+%             plot([0 1],[100 100], 'r--','LineWidth', 1.2);
+%             hold off
+        end
+        
+        if img == 1
+            title(image_titles{i});
+        end
         axis square
-        set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-        xticks([]),yticks([]);
-        title(image_titles{condition});
+        set(gca,'FontName','Arial','FontSize',12);
     end
     
     clear current_object_size
     clear difference_mat
+    clear Y1
+    clear Y1_cumulative
+    clear edges
+    clear images
 end
 
 
@@ -464,20 +487,89 @@ end
 % set(gca,'FontName','Arial','FontSize',14);
 
 
-    
-% d = table([cong_delta.delta;incong_delta.delta],[object_size(:,2);object_size(:,2)],categorical([ones(length(selected_img),1); 1+ones(length(selected_img),1)]),'VariableNames',{'delta','size','congruence'});
-% lm =fitlme(d,'delta~size*congruence + (1|size) + (1|congruence)')
+%%
+subplot(1,2,1),scatter(cong_delta.eccentricity, object_size(:,2),'MarkerEdgeColor','blue','MarkerFaceColor','blue','jitter','on','jitterAmount',0.2,'MarkerFaceAlpha',0.3);
+xlim([-0.5 2.5]),xticks([0 1 2]);
+set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
+ylabel('Object size (proportion in image)')
 
-% 
-% 
+subplot(1,2,2),scatter(cong_delta.eccentricity,cong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
+hold on
+scatter(incong_delta.eccentricity,incong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
+hold off
+xlim([-0.5 2.5]),xticks([0 1 2]);
+set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
+ylabel(['\Delta' 'tDxC']);
+legend({'Congruent','Incongruent'},'Box','off');
 
-%% quickly check the correlation among size, eccentricity, weibull and saliency
-weibull = [weibull_stat(:,2); weibull_stat(:,3)];
-input_mat = [object_size(:,2) cong_delta.eccentricity weibull_stat(:,2) saliency_stat(:,2)];
-input_mat = [repmat(object_size(:,2),2,1) repmat(cong_delta.eccentricity,2,1) weibull repmat(saliency_stat(:,2),2,1)];
-[r,p] = corrcoef(input_mat)
-round(r,2)
+[h,p] = corrcoef(cong_delta.eccentricity, object_size(:,2))
 
+%% statistical analysis
+big_data_matrix = [repmat([cong_delta.img saliency_stat(:,2) object_size(:,2)],[2,1]) [weibull_stat(:,2); weibull_stat(:,3)]...
+    [cong_delta.delta; incong_delta.delta]];
+data = array2table(big_data_matrix, 'VariableNames',{'image','saliency','size','weibull','delta'});
+data = addvars(data,categorical([zeros(136,1); ones(136,1)]), categorical(repmat(cong_delta.eccentricity,[2,1])),'NewVariableNames',...
+    {'congruence','eccentricity'});
+
+% size
+lm1 = fitlme(data, 'delta ~ size*congruence + (1|image)+(congruence|image)')
+lm2 = fitlme(data, 'delta ~ size + congruence + (1|image) + (congruence|image)')
+interaction = compare(lm2,lm1)
+
+lm3 = fitlme(data, 'delta ~ size + size:congruence + (1|image) + (congruence|image)')
+congruence_effect = compare(lm3,lm1)
+
+lm4 = fitlme(data, 'delta ~ congruence + size:congruence + (1|image) + (congruence|image)')
+size_effect = compare(lm4,lm1)
+
+cong_data = table(cong_delta.delta, object_size(:,2),object_size(:,1),'VariableNames',{'delta','size','image'});
+lm1_cong = fitlme(cong_data,'delta ~ size + (1|image)')
+lm1_cong_reduced = fitlme(cong_data,'delta ~ 1 + (1|image)')
+cong_size_effect = compare(lm1_cong_reduced, lm1_cong)
+
+incong_data = table(incong_delta.delta, object_size(:,2),object_size(:,1),'VariableNames',{'delta','size','image'});
+lm1_incong = fitlme(incong_data, 'delta ~ size + (1|image)')
+lm1_incong_reduced = fitlme(incong_data, 'delta ~ 1 + (1|image)');
+incong_size_effect = compare(lm1_incong_reduced, lm1_incong)
+
+
+%
+dot_colours = cbrewer('qual','Set2',8);
+line_colour = cbrewer('qual','Set1',8);
+o_effects = fixedEffects(lm1);
+x_max = max(object_size(:,2)) + 0.01;
+scatter(object_size(:,2),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
+hold on
+scatter(object_size(:,2),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
+plot([0 x_max],[o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([0 x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
+hold off
+set(gca,'FontName','Arial','FontSize',16);
+ylim([-6 6]),xlim([0 x_max]);
+xlabel('Object Size (Proportion in Image)');
+ylabel('\DeltatDxC');
+
+
+% weibull
+%%%%
+
+lm6 = fitlme(data, 'delta ~ size*weibull + (1|image)')
+lm7 = fitlme(data, 'delta ~ size + weibull + (1|image)')
+sw_interaction = compare(lm7,lm6)
+
+lm8 = fitlme(data, 'delta ~ size + (1|image)')
+lm9 = fitlme(data, 'delta ~ weibull + (1|image)')
+weibull_effect = compare(lm8,lm7)
+size_effect = compare(lm9,lm7)
+
+lm10 = fitlme(data, 'delta ~ size*saliency + (1|image)')
+lm11 = fitlme(data, 'delta ~ size + saliency + (1|image)')
+lm12 = fitlme(data, 'delta ~ saliency + (1|image)')
+ss_interaction = compare(lm11,lm10)
+sal_effect = compare(lm8,lm11)
+size_effect = compare(lm12,lm11)
+
+fitlme(data, 'delta ~ size + weibull + saliency')
 
 %% display images based on tDxC
 % load image list
@@ -610,110 +702,6 @@ end
 
 
 end
-
-%%
-subplot(1,2,1),scatter(cong_delta.eccentricity, object_size(:,2),'MarkerEdgeColor','blue','MarkerFaceColor','blue');
-xlim([-0.5 2.5]),xticks([0 1 2]);
-set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
-ylabel('Object size (proportion in image)')
-
-scatter(cong_delta.eccentricity,cong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.1);
-hold on
-scatter(incong_delta.eccentricity,incong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.1);
-hold off
-xlim([-0.5 2.5]),xticks([0 1 2]);
-set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
-ylabel(['\Delta' 'tDxC']);
-legend({'Congruent','Incongruent'},'Box','off');
-
-scatter(object_size(:,2),cong_delta.delta,'filled','MarkerFaceAlpha',0.5);
-hold on
-scatter(object_size(:,2),incong_delta.delta,'filled','MarkerFaceAlpha',0.5);
-hold off
-set(gca,'FontSize',14,'Box','off');
-ylabel(['\Delta' 'tDxC']),xlabel('Object size');
-legend({'Congruent','Incongruent'},'Box','off');
-
-[h,p] = corrcoef(cong_delta.eccentricity, object_size(:,2))
-
-%%
-big_data_matrix = [repmat([cong_delta.img saliency_stat(:,2) object_size(:,2)],[2,1]) [weibull_stat(:,2); weibull_stat(:,3)]...
-    [cong_delta.delta; incong_delta.delta]];
-data = array2table(big_data_matrix, 'VariableNames',{'image','saliency','size','weibull','delta'});
-data = addvars(data,categorical([zeros(136,1); ones(136,1)]), categorical(repmat(cong_delta.eccentricity,[2,1])),'NewVariableNames',...
-    {'congruence','eccentricity'});
-
-
-% trying out models without LRT
-lm = fitlme(data, 'delta ~ congruence*size*eccentricity + (1|image)+(congruence|image) + (size|image) + (eccentricity | image)')
-% size
-lm1 = fitlme(data, 'delta ~ congruence*size*eccentricity + (1|image)+(congruence|image)')
-lm2 = fitlme(data,'delta ~ congruence + size + eccentricity + congruence:size + congruence:eccentricity + size:eccentricity + (1|image) + (congruence|image)')
-lm3 = fitlme(data,'delta ~ congruence + size + eccentricity + congruence:size + congruence:eccentricity + (1|image) + (congruence|image)')
-lm4 = fitlme(data,'delta ~ congruence + size + eccentricity + congruence:size +(1|image) + (congruence|image)')
-lm5 = fitlme(data,'delta ~ congruence + size + eccentricity + congruence:eccentricity + (1|image) + (congruence|image)')
-lm6 = fitlme(data,'delta ~ congruence + size + eccentricity +(1|image) + (congruence|image)')
-lm7 = fitlme(data,'delta ~ congruence + size +(1|image) + (congruence|image)')
-lm8 = fitlme(data,'delta ~ congruence + eccentricity + (1|image) + (congruence|image)')
-lm9 = fitlme(data,'delta ~ size + eccentricity +(1|image) + (congruence|image)')
-
-
-lm3 = fitlme(data, 'delta ~ size*congruence + (1|image)+(congruence|image)')
-lm = fitlme(data, 'delta ~ eccentricity*congruence + (1|image) + (congruence|image)')
-
-
-lm = fitlme(data, 'delta ~ size*eccentricity + (size|image) + (eccentricity|image) + (1|image)');
-lm_r_s = fitlme(data, 'delta ~ size:eccentricity + eccentricity + (size|image) + (eccentricity|image) + (1|image)');
-lm_r_e = fitlme(data,'delta ~ size:eccentricity + size + (size|image) + (eccentricity|image) + (1|image)');
-lm_r_in = fitlme(data,'delta ~ size + eccentricity + (size|image) + (eccentricity|image) + (1|image)');
-
-size_effect = compare(lm_r_s, lm)
-ecc_effect = compare(lm_r_e, lm)
-intera_effect = compare(lm_r_in,lm)
-
-
-lm = fitlme(data, 'delta ~ size ')
-lm_r_s = fitlme(data, 'delta ~ size:saliency + saliency + (size|image) + (saliency|image) + (1|image)');
-lm_r_sat = fitlme(data,'delta ~ size:saliency + size + (size|image) + (saliency|image) + (1|image)');
-lm_r_in = fitlme(data,'delta ~ size + saliency + (size|image) + (saliency|image) + (1|image)');
-
-lm1 = fitlme(data,'delta ~ size + (size|image) + (saliency|image) + (1|image)')
-lm2 = fitlme(data,'delta ~ saliency + (size|image) + (saliency|image) + (1|image)')
-compare(lm2,lm_r_in)
-
-lm = fitlme(data,'delta ~ condition + size + (1|image)')
-lm_reduced = fitlme(data,'delta ~ condition + size + (1|image)')
-
-lm = fitlme(data, 'delta ~ size*saliency');
-lm_r_s = fitlme(data, 'delta ~ size:saliency + saliency');
-lm_r_sat = fitlme(data,'delta ~ size:saliency + size');
-lm_r_in = fitlme(data,'delta ~ size + saliency');
-
-size_effect = compare(lm_r_s, lm)
-sat_effect = compare(lm_r_sat, lm)
-intera_effect = compare(lm_r_in,lm)
-
-lm1 = fitlme(data,'delta ~ size')
-lm2 = fitlme(data,'delta ~ saliency')
-compare(lm1,lm_r_in)
-compare(lm2, lm_r_in)
-
-lme_size = fitlme(data,'delta~size')
-lme_size_saliency = fitlme(data,'delta~size + saliency')
-lm2 = fitlme(data,'delta ~ saliency');
-compare(lme_size,lme_size_saliency)
-compare(lm2,lme_size_saliency)
-
-lm = fitlme(data, 'delta ~ size*weibull + (size|image) + (weibull|image) + (1|image)');
-lm_r_s = fitlme(data, 'delta ~ size:weibull + weibull + (size|image) + (weibull|image) + (1|image)');
-lm_r_w = fitlme(data,'delta ~ size:weibull + size + (size|image) + (weibull|image) + (1|image)');
-lm_r_in = fitlme(data,'delta ~ size + weibull + (size|image) + (weibull|image) + (1|image)');
-
-size_effect = compare(lm_r_s, lm)
-w_effect = compare(lm_r_w, lm)
-intera_effect = compare(lm_r_in,lm)
-
-
 
 
 %%
