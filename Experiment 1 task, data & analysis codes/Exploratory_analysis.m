@@ -185,47 +185,70 @@ ylabel('\DeltatDxC');
 
 %% plot original color image, gradient magnitude image, histogram and fitted weibull distribution
 
-% sel_img = [12 1 48 54 97];
-sel_img = 5;
-figure;
+ sel_img = [12 1 48 54 97];
+
 for i = 1:length(sel_img)
-    current_colour_img =  imresize(imread(fullfile(folder1,theFiles1(sel_img(i)).name)),[150 150]); %%% congruent
+    figure;
+    % plot original color image
+    ax1= axes('Position',[0.015 0.49 0.27 0.27]);
+    current_colour_img = imresize(imread(fullfile(folder1,theFiles1(sel_img(i)).name)),[150 150]); %%% congruent
+    image(ax1,current_colour_img);
+    xticks([]),yticks([]);
+    set(gca, 'XColor','white','YColor','white')
+    box off;
+    axis square
+    
+    % compute and plot gradient magnitude image
+    ax2= axes('Position',[0.28 0.49 0.27 0.27]);
     gradient_mag = imgradient(rgb2gray(current_colour_img));
-    gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
+    image(ax2,gradient_mag);
+    xticks([]),yticks([]);
+    set(gca, 'XColor','white','YColor','white') % get rid of x and y axes
+    box off;
+    colormap gray % show gradient image in black and white
+    axis square
+
+
+    % compute and plot contrast + weibull distributions
+    ax3 = axes('Position',[0.63 0.49 0.27 0.27]);
+    gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % reshape the gradient mag to a single column to make histogram, and add 0.0001 to all values so they are all positive values
     pd = fitdist(gradient_vector,'weibull');
-    subplot(1,2,1),imshow(uint8(gradient_mag));
-    subplot(1,2,2);
-    histogram(gradient_mag,256,'Normalization','pdf')
+    histogram(ax3,gradient_mag,256,'Normalization','pdf')
     hold on
     x = linspace(0,max(gradient_vector));
-    plot(x,pdf(pd,x),'LineWidth',3);
+    plot(x,pdf(pd,x),'LineWidth',4);
     xlim([0 max(gradient_vector)]);
     hold off
-    title(['\beta' ' = ' num2str(round(pd.A,2))]);
+    xlim([0 800]);
+    a = gca;
+    text(300,max(a.YLim).*0.8,['\beta' ' = ' num2str(round(pd.A,2))],'FontSize',18);
     ylabel('Probability');
     set(gca,'FontName','Arial','FontSize',14)
     axis square
+    if i == length(sel_img)
+        xlabel('Edge Strengh')
+    end
 end
 
-figure;
-for i = 1:length(sel_img)
-    current_colour_img =  imresize(imread(fullfile(folder2,theFiles2(sel_img(i)).name)),[150 150]); %%% congruent
-    gradient_mag = imgradient(rgb2gray(current_colour_img));
-    gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
-    pd = fitdist(gradient_vector,'weibull');
-    subplot(1,2,1),imshow(uint8(gradient_mag));
-    subplot(1,2,2);
-    histogram(gradient_mag,256,'Normalization','pdf')
-    hold on
-    x = linspace(0,max(gradient_vector));
-    plot(x,pdf(pd,x),'LineWidth',3);
-    xlim([0 max(gradient_vector)]);
-    hold off
-    title(['\beta' ' = ' num2str(round(pd.A,2))]);
-    xlabel('Edge Strength'), ylabel('Probability');
-    set(gca,'FontName','Arial','FontSize',14);
-    axis square
-end
+% figure;
+% for i = 1:length(sel_img)
+%     current_colour_img =  imresize(imread(fullfile(folder2,theFiles2(sel_img(i)).name)),[150 150]); %%% congruent
+%     gradient_mag = imgradient(rgb2gray(current_colour_img));
+%     gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
+%     pd = fitdist(gradient_vector,'weibull');
+%     subplot(1,2,1),imshow(uint8(gradient_mag));
+%     subplot(1,2,2);
+%     histogram(gradient_mag,256,'Normalization','pdf')
+%     hold on
+%     x = linspace(0,max(gradient_vector));
+%     plot(x,pdf(pd,x),'LineWidth',3);
+%     xlim([0 max(gradient_vector)]);
+%     hold off
+%     title(['\beta' ' = ' num2str(round(pd.A,2))]);
+%     xlabel('Edge Strength'), ylabel('Probability');
+%     set(gca,'FontName','Arial','FontSize',14);
+%     axis square
+% end
 %% calculate sailiency difference statistics for each image
 %%%% require SaliencyToolbox 2.3 by Itti et al
 %%%% download link: http://www.saliencytoolbox.net/doc/index.html
