@@ -81,30 +81,41 @@ subject_id = unique(Results(:,1));
 
 %Incongruent trial with congruent object, congruent trial with incongruent
 %object -- signal absent for hypo 2
-index{1} = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
-index{2} = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
-b = 1;
+index{1} = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1; % congruent, modified
+index{2} = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1; % incongruent, original
+
+
+
 location = [0 1 2];
+accurate_judgement = [1 -1 1 -1]; % yes to original, no to modified
 
-condition_data = Results(index{1},:);
-for loc = 1:3
-    for sub = 1:length(subject_id)
-        current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
-        mt(b,:)= [sub location(loc) sum(current_sub_data(:,8) == -1)/length(current_sub_data(:,8))];
-        b = b+1;
+% congruent
+for in = 1:2
+    condition_data = Results(index{in},:);
+    b = 1;
+    for loc = 1:3
+        for sub = 1:length(subject_id)
+                current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
+                mt(b,:)= [sub location(loc)  sum(current_sub_data(:,8) == accurate_judgement(in))/length(current_sub_data(:,8))]; 
+                b = b+1;
+        end
     end
+    AUC_lme(mt,1)
+    clear mt
 end
-AUC_lme(mt,1)
 
-condition_data = Results(index{2},:);
-for loc = 1:3
-    for sub = 1:length(subject_id)
-        current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
-        mt(b,:)= [sub location(loc) sum(current_sub_data(:,8) == 1)/length(current_sub_data(:,8))];
-        b = b+1;
-    end
-end
-AUC_lme(mt,1)
+
+
+% condition_data = Results(index{2},:);
+% b = 1;
+% for loc = 1:3
+%     for sub = 1:length(subject_id)
+%         current_sub_data = condition_data(condition_data(:,1) == subject_id(sub) & condition_data(:,13) == location(loc),:);
+%         mt(b,:)= [sub location(loc) sum(current_sub_data(:,8) == -1)/length(current_sub_data(:,8))];
+%         b = b+1;
+%     end
+% end
+% AUC_lme(mt,1)
 
 %% hypo 2, type 2
 

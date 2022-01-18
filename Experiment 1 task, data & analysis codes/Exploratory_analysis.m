@@ -6,6 +6,7 @@ Results(:,9) = Results(:,8).*Results(:,9);
 Results(:,9) = Results(:,9) - 0.5;
 Results(:,9) = Results(:,8).*Results(:,9);
 img_id = unique(Results(:,11));
+subject_id = unique(Results(:,1));
 
 % signal present and absent trial classification
 Find_N = Results(:,5) ==1;
@@ -33,8 +34,20 @@ filePattern2 = fullfile(folder2,'*.jpg');
 theFiles1 = dir(filePattern1);
 theFiles2 = dir(filePattern2);
 
+%% check data
 
-
+problem_data = zeros(1,14);
+for sub = 1:length(subject_id)
+    sub_data = Results(Results(:,1) == subject_id(sub),:);
+    current_sub_img = unique(sub_data(:,11));
+    for i = 1:length(current_sub_img)
+        if sum(sub_data(:,11) == current_sub_img(i) & sub_data(:,6) == 1) == 0
+            problem_data = [problem_data; sub_data(sub_data(:,11)== current_sub_img(i),:)];
+        end
+    end
+end
+problem_data(1,:) = [];
+length(unique(problem_data(2,:)))
 %% original vs. modified: tDxC
 % s = zeros(length(img_id),1);
 % for p = 1:max(img_id)
@@ -333,30 +346,21 @@ ylabel('\DeltatDxC');
 %% plotting images and saliency
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\SaliencyToolbox'));
 final_salmap = [];
+selected_img = [5 42 35];
 
-for img = 5:5
-images{1} = imresize(imread(fullfile(folder1,theFiles1(img).name)),[150 150]);
-images{2} = imresize(imread(fullfile(folder2,theFiles2(img).name)),[150 150]);
-images{3} = abs(images{1} - images{2});
-images_title = {'Congruent','Incongruent','|\Delta(Cong - Incong)|'};
-rgb_difference = sum(images{3},3);
-rgb_diff_quantile = quantile(rgb_difference, [0.95 1],  'all');
-[row1,column1] = find(rgb_difference > rgb_diff_quantile(1,:) & rgb_difference < rgb_diff_quantile(2,:));
+for img = 1:length(selected_img)
+images{1} = imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]);
+images{2} = imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150]);
 object_boundary = boundary(row1,column1);
 
 figure;
-for condition = 1:3
-% original + difference images
-ax1= axes('Position',[0.015 + (condition-1).*0.3 0.52 0.3 0.3]); 
-image(ax1,images{condition});
-hold on
-plot(ax1, column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
-hold off
-axis square
-
-set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-xticks([]),yticks([]);
-title(images_title{condition});
+for condition = 1:2
+    % original images
+    ax1= axes('Position',[0.015+(condition-1).*0.16 0.49 0.2 0.2]); 
+    image(ax1,images{condition});
+    axis square
+    set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+    xticks([]),yticks([]);
 end
 
 % get saliency map
@@ -367,37 +371,25 @@ for congruence = 1:2
     salmap = makeSaliencyMap(current_img,params);
     bigMap = imresize(salmap.data,current_img.size(1:2));
     final_salmap{congruence} = 255*mat2gray(bigMap); %% here convert the saliency map to grayscale image
-end
-sal_difference = abs(final_salmap{1}-final_salmap{2});
-% sal_quantile = quantile(sal_difference, [0.95 1],  'all');
-final_salmap{3} = sal_difference;
-
-% % plot saliency map and difference image
-
-% [row2,column2] = find(sal_difference > sal_quantile(1,:) & sal_difference < sal_quantile(2,:)); % find the area of difference, by returning the row and column indices of pixels within that area 
-% sal_boundary = boundary(row2,column2);
-stat = sum(sal_difference(row1,column1),'all');
-disp(round(stat,0))
-for condition = 1:3
-    ax2 = axes('Position',[0.015+(condition-1).*0.3 0.1 0.3 0.3]);
-    image(ax2,final_salmap{condition});
-    colormap gray
-%     if condition == 3
-%         hold on
-%         plot(ax2,column1(object_boundary),row1(object_boundary),'r-','LineWidth',1.2);
-%         hold off
-%     end
+    
+    % show saliency maps of original and modified patches
+    ax2 = axes('Position',[0.015+(congruence+1).*0.16 0.49 0.2 0.2]); 
+    image(ax2,final_salmap{congruence});
     axis square
     set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
     xticks([]),yticks([]);
-    title(images_title{condition});
+    colormap gray
 end
-% if condition == 3
-%     image(final_salmap{3})
-%     colormap gray
-%     set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
-% end
-% axis square
+
+% get saliency difference map
+sal_difference = abs(final_salmap{1}-final_salmap{2});
+ax3 = axes('Position',[0.015+4.*0.16 0.49 0.2 0.2]);
+image(ax3, sal_difference);
+axis square
+set(gca,'FontName','Arial','FontSize',12,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+xticks([]),yticks([]);
+colormap gray
+
 end
 
 
@@ -574,8 +566,8 @@ ylabel('\DeltatDxC');
 % weibull
 %%%%
 
-lm6 = fitlme(data, 'delta ~ size*weibull + (1|image)')
-lm7 = fitlme(data, 'delta ~ size + weibull + (1|image)')
+lm6 = fitlme(data, 'delta ~ size*weibull+ (1|image)')
+lm7 = fitlme(data, 'delta ~ size + weibull+ (1|image)')
 sw_interaction = compare(lm7,lm6)
 
 lm8 = fitlme(data, 'delta ~ size + (1|image)')
@@ -583,8 +575,9 @@ lm9 = fitlme(data, 'delta ~ weibull + (1|image)')
 weibull_effect = compare(lm8,lm7)
 size_effect = compare(lm9,lm7)
 
-lm10 = fitlme(data, 'delta ~ size*saliency + (1|image)')
-lm11 = fitlme(data, 'delta ~ size + saliency + (1|image)')
+% saliency
+lm10 = fitlme(data, 'delta ~ size*saliency+ (1|image)')
+lm11 = fitlme(data, 'delta ~ size + saliency+ (1|image)')
 lm12 = fitlme(data, 'delta ~ saliency + (1|image)')
 ss_interaction = compare(lm11,lm10)
 sal_effect = compare(lm8,lm11)
@@ -592,6 +585,8 @@ size_effect = compare(lm12,lm11)
 
 fitlme(data, 'delta ~ size + weibull + saliency')
 
+% eccentricity 
+lm13 = fitlme(data, 'delta ~ size*eccentricity + (1|image)')
 %% display images based on tDxC
 % load image list
 file_path_Congruent_Patch = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\congruent patch\';

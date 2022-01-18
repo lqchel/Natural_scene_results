@@ -42,8 +42,6 @@ y = [0:0.01:3.24 3.24+zeros(1,length(0:0.02:3.24)) -1.*[-3.24:0.02:3.24] -3.24+z
 ori = 10.47.*complex(x,y);
 cor_ori = log(ori+1);
 
-
-
 %%%
 
 
@@ -56,13 +54,15 @@ cor_ori_2 = log(ori_2+1);
 %% peripheral
 x1 = [3.24+zeros(1,length(0:0.02:3.24)) 3.24:0.02:9.72 9.72+zeros(1,length(0:0.02:6.48)) -1.*[-9.72:0.02:-3.24] 3.24+zeros(1,length(0:0.02:3.24))];
 y2 = [6.48:0.02:9.72 9.72+zeros(1,length(0:0.02:6.48)) -1.*[-9.72:0.02:-3.24] 3.24+zeros(1,length(0:0.02:6.48)) 3.24:0.02:6.48];
-ori_3 = 10.47 .*complex(x1,y2);
+ ori_3 = 10.47 .*complex(x1,y2);
+
 cor_ori_3 = log(ori_3+1);
 
 %% para_peripheral 2 (full patch on one side of visual field)
 
 y3 = y2-6.48;
 ori_4 = 10.47 .*complex(x1,y3);
+
 cor_ori_4 = log(ori_4+1);
 
 %% fill projection
