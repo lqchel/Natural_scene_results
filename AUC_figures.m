@@ -142,7 +142,7 @@ if exp == 2
 hold off
 ylabel('Objective Type 1 AUC');
 xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
 ylim([0.4 1]);
 legend('off');
 title('P+O vs. N','FontName','Arial');
@@ -228,7 +228,7 @@ if exp == 2
     hold off
     ylabel('Subjective Type 2 AUC');
     xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-    set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+    set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
     ylim([0.4 1]);
     xlabel('Patch location');
     legend('off');
@@ -346,7 +346,7 @@ grandmatrix = zeros(num_sub,1);
         hold off
         legend('off');
         xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
         ylim([0.4 1]);
         title('O vs. M, Congruent','FontName','Arial');
     end
@@ -468,7 +468,7 @@ matrix5 = zeros(num_sub, 3);
             plot([-7 11],[0.5 0.5],'k--');
             hold off
             xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-            set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+            set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
             ylim([0.4 1]);
             title('O vs. M, Incongruent','FontName','Arial');
         end
@@ -588,7 +588,7 @@ end
     if exp == 2
         hold off
         xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
         ylim([0.4 1]);
         xlabel('Patch location');
         legend('off');
@@ -709,7 +709,7 @@ end
     if exp == 2
         hold off
         xlim([-7 11]),xticks([-5 0 6.5 9.2]);
-        set(gca,'XTickLabel',{'All','F','P','P-P'},'FontSize',12,'Box','off');
+        set(gca,'XTickLabel',{'All','F','P-F','P'},'FontSize',12,'Box','off');
         ylim([0.4 1]);
         xlabel('Patch location');
         legend('off');
