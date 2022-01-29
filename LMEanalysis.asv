@@ -30,18 +30,19 @@ subject_id = unique(Results(:,1));
 % null patches
 Find_N = Results(:,5) ==1;
 
-% present patch trials
+% present patch trials -- signal present for hypo 1
 Find_CAP = Results(:,4) == 0 & Results(:,5) == 2; 
 Find_IAP = Results(:,4) == 1 & Results(:,5) == 3; 
 
-% collate into two columns
-index{1} = Find_CAP | Find_IAP;  % present
-index{2} = Find_N; % null
+index{1} = Find_CAP || Find_IAP;  % present
+index{2} = Find_N; % incongruent, original
+
+
 
 location = [0 1 2];
-accurate_judgement = [1 -1]; % yes to present, no to null
+accurate_judgement = [1 -1]; % yes to original, no to modified
 
-
+% congruent
 for in = 1:2
     condition_data = Results(index{in},:);
     b = 1;

@@ -504,15 +504,14 @@ incong_size_effect = compare(lm1_incong_reduced, lm1_incong)
 figure;
 dot_colours = cbrewer('qual','Set2',8);
 line_colour = cbrewer('qual','Set1',8);
-o_effects_cong = fixedEffects(lm1_cong);
-o_effects_incong = fixedEffects(lm1_incong);
+o_effects = fixedEffects(lm1);
 x_min = min(object_size(:,3));
 x_max = max(object_size(:,3))+0.5;
 scatter(object_size(:,3),cong_delta.delta,'MarkerEdgeColor',dot_colours(3,:),'MarkerFaceColor',dot_colours(3,:),'MarkerFaceAlpha',0.7);
 hold on
 scatter(object_size(:,3),incong_delta.delta,'MarkerEdgeColor',dot_colours(2,:),'MarkerFaceColor',dot_colours(2,:),'MarkerFaceAlpha',0.7);
-plot([x_min x_max],[x_min.*o_effects_cong(2,:) + o_effects_cong(1,:) x_max.*o_effects_cong(2,:) + o_effects_cong(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
-plot([x_min x_max],[x_min.*o_effects_incong(2,:) + o_effects_incong(1,:) x_max.*o_effects_incong(2,:) + o_effects_incong(1,:)],'Color',line_colour(1,:),'LineWidth',2.3);
+plot([x_min x_max],[x_min o_effects(1,:) x_max.*o_effects(2,:) + o_effects(1,:)],'Color',line_colour(2,:),'LineWidth',2.3);
+plot([x_min x_max],[o_effects(1,:)+o_effects(3,:) x_max.*(o_effects(2,:) + o_effects(4,:)) + o_effects(1,:) + o_effects(3,:)],'Color',line_colour(1,:),'LineWidth',2.3);
 hold off
 set(gca,'FontName','Arial','FontSize',16);
 ylim([-6 6]),xlim([x_min x_max]);

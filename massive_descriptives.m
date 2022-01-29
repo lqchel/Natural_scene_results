@@ -27,11 +27,7 @@ Find_Incongruent_IP = Results(:,4) == 1 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Congruent_IP = Results(:,4) == 0 & Results(:,5) == 3 & Results(:,6) == 1;
 Find_Incongruent_CP = Results(:,4) == 1 & Results(:,5) == 2 & Results(:,6) == 1;
 
-% uncomment for exp 1 results
-% ecc_level_1 = Results(:,7)==2 | Results(:,7)==4| Results(:,7)==6|Results(:,7)== 8;
-% ecc_level_2 = (Results(:,7)==1 | Results(:,7)==3| Results(:,7)==7|Results(:,7)== 9) .* 2;
-% ecc_levels = zeros(length(Results),1)+ ecc_level_1 + ecc_level_2;
-% Results = [Results ecc_levels];
+
 
 %%% set fixed axes for each small figure
 for i = 1:3
@@ -131,7 +127,7 @@ for loc = 1:3
 pcg_N = [pcg_N(:,1:4) pcg_N(:,6:9)];
 pcg_AP = [pcg_AP(:,1:4) pcg_AP(:,6:9)];
  
-percentage_N = mean(pcg_N,1);
+percentage_N = mean(pcg_N,1)
 percentage_AP = mean(pcg_AP,1);
 
 if loc == 1
