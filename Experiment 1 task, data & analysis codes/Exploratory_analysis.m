@@ -340,7 +340,8 @@ end
 %% calculate critical object sizes
 b = 1;
 criteria = 50; % set RGB level selecion criteria
-lenient_criteria = 5; % for image 25, 45, and 108
+lenient_criteria_1 = 5; % for image 45, and 108
+lenient_criteria_2 = 0; % for image 25
 object_size = [];
 current_object_size = [];
 for img = 1:length(img_id) 
@@ -348,8 +349,10 @@ for img = 1:length(img_id)
     difference = sum(difference_mat,3);
     if img ~= 25 && img ~= 45 && img ~= 108
         current_object_size = (sum(sum(difference > criteria)))/(150^2);  
-    else
-        current_object_size = (sum(sum(difference > lenient_criteria)))/(150^2);  % use the lenient criteria for image 25, 45 and 108
+    elseif img == 45 || img == 108
+        current_object_size = (sum(sum(difference > lenient_criteria_1)))/(150^2);  % use delta RGB > 5 for image 45 and 108
+    elseif img == 25
+        current_object_size = (sum(sum(difference > lenient_criteria_2)))/(150^2); % use delta RGB > 0 for image 25
     end
     object_size(b,:) = [img current_object_size log(current_object_size)];
     b = b+1;
@@ -358,7 +361,7 @@ for img = 1:length(img_id)
     clear difference_mat
 end
 
-
+figure('Color','white');
 [Y1,edges_1] = histcounts(object_size(:,2),length(img_id));
 Y1_cumulative  = cumsum(Y1);
 subplot(1,2,1),plot(edges_1,[Y1_cumulative max(img_id)],'LineWidth',1.2);
@@ -371,8 +374,9 @@ xlabel('Log-transformed Object Size Data'), ylabel('Count');
 
 %% plotting object size examples
 b = 1;
-%selected_img = [5 42 35]; %%% uncomment for normal criteria
-selected_img = [25 45 108];
+selected_img = [5 42 35]; %%% uncomment for normal criteria
+% selected_img = [45 108];
+% selected_img = 25;
 object_size = [];
 image_titles = {'Congruent','Incongruent','RGB difference','Detected object area',['\DeltaRGB histogram']};
 criteria = 5; % lenient criteria for image 25, 45, and 108
@@ -410,11 +414,11 @@ criteria = 5; % lenient criteria for image 25, 45, and 108
             Y1_cumulative  = cumsum(Y1)/150^2;
             plot(ax2,[Y1_cumulative 1],edges,'LineWidth',2);
             xlim([0.92 1]);
-            ylim([0 400]);
-            yticks(0:100:400);
-            %%% uncomment for normal criteria
-            % yticks([0 criteria 200 400 600])
-            % ylim([0 750])
+%             ylim([0 400]);
+%             yticks(0:100:400);
+            %%%% uncomment for normal criteria
+            yticks([0 criteria 200 400 600])
+            ylim([0 750])
             if img == length(selected_img)
             xlabel('Percentage');
             end
@@ -423,9 +427,9 @@ criteria = 5; % lenient criteria for image 25, 45, and 108
             hold on
             plot([0.92 1],[criteria criteria], 'r--','LineWidth', 1.5);
             hold off
-            text(0.93,350,['Size = ' num2str(round(object_size(img,2),3))],'FontSize',14)
-            %%% uncomment for normal criteria (criteria = 50)
-            %text(0.94,650,['Size = ' num2str(round(object_size(img,2),2))], 'FontSize',14)
+%             text(0.93,350,['Size = ' num2str(round(object_size(img,2),3))],'FontSize',14)
+            %%%% uncomment for normal criteria (criteria = 50)
+            text(0.94,650,['Size = ' num2str(round(object_size(img,2),2))], 'FontSize',14)
         end
         
         if img == 1
@@ -501,7 +505,7 @@ incong_size_effect = compare(lm1_incong_reduced, lm1_incong)
 
 
 %
-figure;
+figure('Color','white');
 dot_colours = cbrewer('qual','Set2',8);
 line_colour = cbrewer('qual','Set1',8);
 o_effects_cong = fixedEffects(lm1_cong);
@@ -544,6 +548,69 @@ fitlme(data, 'delta ~ size + weibull + saliency')
 
 % eccentricity 
 lm13 = fitlme(data, 'delta ~ size*eccentricity + (1|image)')
+
+%% delta tDxC against eccentricity
+addpath(genpath('C:\Users\liang\OneDrive\Documents\honours\research project\Experiment\RainCloudPlots-master'));
+location = categorical([0 1 2]);
+cong = categorical([0 1]);
+
+figure;
+set(gcf, 'Color', 'white');
+set(gcf, 'InvertHardCopy', 'off'); % For keeping the black background when printing
+% set(gcf, 'RendererMode', 'manual');
+% set(gcf, 'Renderer', 'painters');
+
+colours = cbrewer('qual', 'Set2', 8); % https://au.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/34087/versions/2/screenshot.jpg
+
+
+for ecc_level = 1 : size(location,2)
+   
+    subplot(1,3,ecc_level);
+    set(gca, 'XAxisLocation', 'top');
+
+    
+ 
+    % Create raincloud
+%     rain_scatter = (rand(size(acc_all{feature_type}, 1), 1) - 0.5) * rain_spread;
+      h1 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(1),:), 'box_on', 1, 'color', colours(3, :), 'alpha', 0.6,...
+        'box_dodge', 1, 'box_dodge_amount', 0.3, 'dot_dodge_amount', 0.3,...
+        'box_col_match', 0,'density_type','rash');
+      h2 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(2),:), 'box_on', 1, 'color', colours(2, :), 'alpha', 0.6,...
+        'box_dodge', 1, 'box_dodge_amount', 0.8, 'dot_dodge_amount', 0.8,...
+        'box_col_match', 0,'density_type','rash');
+      if ecc_level == 1
+      legend([h1{1} h2{1}], {'Congruent', 'Incongruent'});
+      end
+%     % adjust raincloud
+     h1{1}.ShowBaseLine = 'off'; % hide baseline
+     h1{1}.EdgeAlpha = 0; % hide cloud outline
+     h2{1}.ShowBaseLine = 'off'; % hide baseline
+     h2{1}.EdgeAlpha = 0; % hide cloud outline
+     
+     
+%     % adjust rain
+%     handles{feature_type}{2}.YData = rain_scatter;
+%     handles{feature_type}{2}.SizeData = 3; % raindrop size
+% 
+%     % Shift boxplots
+%     handles{feature_type}{3}.Position([2 4]) = [-rain_spread/2 rain_spread]; % set box width to match rain spread
+%     handles{feature_type}{4}.YData = [-rain_spread/2 rain_spread/2]; % set median line to match rain spread
+
+    xlim([-4 6.2]);
+    ylim([-0.3 1]);
+    yticks([0 0.5 1]);
+%     yticklabels({'F','P-F','P'});
+     view([90 -90]);
+    set(gca,'box','off')
+end
+
+
+% limits = cell2mat(get(ax,'YLim')); % get both axes limits
+% set(ax,'YLim',[min(limits(:)) max(limits(:))]); % set the same values for both axes
+% linkaxes(ax);
+
+
+
 %% display images based on tDxC
 % load image list
 file_path_Congruent_Patch = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\congruent patch\';
