@@ -339,21 +339,14 @@ end
 
 %% calculate critical object sizes
 b = 1;
-criteria = 50; % set RGB level selecion criteria
-lenient_criteria_1 = 5; % for image 45, and 108
-lenient_criteria_2 = 0; % for image 25
+criteria = 10; % set RGB level selecion criteria
 object_size = [];
 current_object_size = [];
+
 for img = 1:length(img_id) 
     difference_mat = abs(imresize(imread(fullfile(folder1,theFiles1(img_id(img)).name)),[150 150]) - imresize(imread(fullfile(folder2,theFiles2(img_id(img)).name)),[150 150]));
     difference = sum(difference_mat,3);
-    if img ~= 25 && img ~= 45 && img ~= 108
-        current_object_size = (sum(sum(difference > criteria)))/(150^2);  
-    elseif img == 45 || img == 108
-        current_object_size = (sum(sum(difference > lenient_criteria_1)))/(150^2);  % use delta RGB > 5 for image 45 and 108
-    elseif img == 25
-        current_object_size = (sum(sum(difference > lenient_criteria_2)))/(150^2); % use delta RGB > 0 for image 25
-    end
+    current_object_size = (sum(sum(difference > criteria)))/(150^2);  
     object_size(b,:) = [img current_object_size log(current_object_size)];
     b = b+1;
     
@@ -361,26 +354,26 @@ for img = 1:length(img_id)
     clear difference_mat
 end
 
-figure('Color','white');
-[Y1,edges_1] = histcounts(object_size(:,2),length(img_id));
-Y1_cumulative  = cumsum(Y1);
-subplot(1,2,1),plot(edges_1,[Y1_cumulative max(img_id)],'LineWidth',1.2);
-xlabel('Raw Object Size Data'), ylabel('Count');
-
-[Y2,edges_2] = histcounts(object_size(:,3),length(img_id));
-Y2_cumulative = cumsum(Y2);
-subplot(1,2,2),plot(edges_2,[Y2_cumulative max(img_id)],'LineWidth',1.2);
-xlabel('Log-transformed Object Size Data'), ylabel('Count');
+% figure('Color','white');
+% [Y1,edges_1] = histcounts(object_size(:,2),length(img_id));
+% Y1_cumulative  = cumsum(Y1);
+% subplot(1,2,1),plot(edges_1,[Y1_cumulative max(img_id)],'LineWidth',1.2);
+% xlabel('Raw Object Size Data'), ylabel('Count');
+% 
+% [Y2,edges_2] = histcounts(object_size(:,3),length(img_id));
+% Y2_cumulative = cumsum(Y2);
+% subplot(1,2,2),plot(edges_2,[Y2_cumulative max(img_id)],'LineWidth',1.2);
+% xlabel('Log-transformed Object Size Data'), ylabel('Count');
 
 %% plotting object size examples
 b = 1;
-%selected_img = [5 42 35]; %%% uncomment for normal criteria
-% selected_img = [45 108];
-% selected_img = 25;
+% selected_img = [5 35 12 45 107]; 
+ %selected_img = 45; 
+ selected_img = 45;
 object_size = [];
 image_titles = {'Congruent','Incongruent','RGB difference','Detected object area',['\DeltaRGB histogram']};
-criteria = 5; % lenient criteria for image 25, 45, and 108
-% criteria = 50 %% normal criteria for all images except 25, 45 and 108
+criteria = 0;
+
 
  for img = 1:length(selected_img)
     images = {imresize(imread(fullfile(folder1,theFiles1(selected_img(img)).name)),[150 150]) imresize(imread(fullfile(folder2,theFiles2(selected_img(img)).name)),[150 150])};
@@ -389,7 +382,7 @@ criteria = 5; % lenient criteria for image 25, 45, and 108
     current_object_size = (sum(sum(difference > criteria)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
-    figure('Color','white');
+    %figure('Color','white');
     
     for i = 1:5
         if i < 4
@@ -413,23 +406,24 @@ criteria = 5; % lenient criteria for image 25, 45, and 108
             [Y1,edges] = histcounts(difference,150^2);
             Y1_cumulative  = cumsum(Y1)/150^2;
             plot(ax2,[Y1_cumulative 1],edges,'LineWidth',2);
-            xlim([0.92 1]);
-            ylim([0 400]);
-            yticks(0:100:400);
-            %%% uncomment for normal criteria
-            % yticks([0 criteria 200 400 600])
-            % ylim([0 750])
+%              xlim([0.75 1]);
+             xlim([0.92 1])
+%             ylim([0 400]);
+%             yticks(0:100:400);
+            %%%% uncomment for normal criteria
+            yticks([0 50 100 150])
+            ylim([0 150])
             if img == length(selected_img)
             xlabel('Percentage');
             end
             
             ylabel(['\Delta RGB']);
             hold on
-            plot([0.92 1],[criteria criteria], 'r--','LineWidth', 1.5);
+             plot([0.95 1],[criteria criteria], 'r--','LineWidth', 1.5);
+%              plot([0.75 1],[criteria criteria], 'r--','LineWidth', 1.5);
             hold off
-            text(0.93,350,['Size = ' num2str(round(object_size(img,2),3))],'FontSize',14)
-            %%% uncomment for normal criteria (criteria = 50)
-            %text(0.94,650,['Size = ' num2str(round(object_size(img,2),2))], 'FontSize',14)
+            text(0.97,145,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
+%             text(0.77,650,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
         end
         
         if img == 1
@@ -438,7 +432,7 @@ criteria = 5; % lenient criteria for image 25, 45, and 108
         axis square
         set(gca,'FontName','Arial','FontSize',12);
     end
-    
+
     clear current_object_size
     clear difference_mat
     clear Y1
@@ -458,22 +452,8 @@ end
 % set(gca,'FontName','Arial','FontSize',14);
 
 
-%%
-subplot(1,2,1),scatter(cong_delta.eccentricity, object_size(:,2),'MarkerEdgeColor','blue','MarkerFaceColor','blue','jitter','on','jitterAmount',0.2,'MarkerFaceAlpha',0.3);
-xlim([-0.5 2.5]),xticks([0 1 2]);
-set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
-ylabel('Object size (proportion in image)')
 
-subplot(1,2,2),scatter(cong_delta.eccentricity,cong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
-hold on
-scatter(incong_delta.eccentricity,incong_delta.delta,'filled','MarkerFaceAlpha',0.5,'jitter','on','jitterAmount',0.2);
-hold off
-xlim([-0.5 2.5]),xticks([0 1 2]);
-set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',14,'Box','off');
-ylabel(['\Delta' 'tDxC']);
-legend({'Congruent','Incongruent'},'Box','off');
 
-[h,p] = corrcoef(cong_delta.eccentricity, object_size(:,2))
 
 %% statistical analysis
 big_data_matrix = [repmat([cong_delta.img saliency_stat(:,2) object_size(:,3)],[2,1]) [weibull_stat(:,2); weibull_stat(:,3)]...
@@ -559,52 +539,64 @@ set(gcf, 'Color', 'white');
 set(gcf, 'InvertHardCopy', 'off'); % For keeping the black background when printing
 % set(gcf, 'RendererMode', 'manual');
 % set(gcf, 'Renderer', 'painters');
-
+labels = {'F','P-F','P'};
 colours = cbrewer('qual', 'Set2', 8); % https://au.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/34087/versions/2/screenshot.jpg
-
+ rain_spread = 0.1; % jitter amount of scatter plot
 
 for ecc_level = 1 : size(location,2)
    
     subplot(1,3,ecc_level);
-    set(gca, 'XAxisLocation', 'top','box','off');
+    set(gca, 'XAxisLocation', 'top');
 
-    
  
     % Create raincloud
-%     rain_scatter = (rand(size(acc_all{feature_type}, 1), 1) - 0.5) * rain_spread;
-      h1 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(1),:), 'box_on', 1, 'color', colours(1, :), 'alpha', 0.8,...
-        'box_dodge', 1, 'box_dodge_amount', 0.3, 'dot_dodge_amount', 0,...
+      rain_scatter = (rand(sum(data.eccentricity == location(ecc_level) & data.congruence == cong(1)), 1) - 0.5) * rain_spread; % jitter for the scatter plot
+      h1 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(1),:), 'box_on', 1, 'color', colours(3, :), 'alpha', 0.8,...
+        'box_dodge', 1, 'box_dodge_amount', 0.7, 'dot_dodge_amount', 0.7,...
         'box_col_match', 0,'density_type','rash');
       h2 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(2),:), 'box_on', 1, 'color', colours(2, :), 'alpha', 0.8,...
-        'box_dodge', 1, 'box_dodge_amount', 0.8, 'dot_dodge_amount', 0,...
+        'box_dodge', 1, 'box_dodge_amount', 1.5, 'dot_dodge_amount',1.5,...
         'box_col_match', 0,'density_type','rash');
-      if ecc_level == 1
-      legend([h1{1} h2{1}], {'Congruent', 'Incongruent'});
-      end
-%     % adjust raincloud
-%     handles{h1}{1}.ShowBaseLine = 'off'; % hide baseline
-%     handles{feature_type}{1}.EdgeAlpha = 0; % hide cloud outline
-% 
-%     % adjust rain
-%     handles{feature_type}{2}.YData = rain_scatter;
-%     handles{feature_type}{2}.SizeData = 3; % raindrop size
-% 
-%     % Shift boxplots
-%     handles{feature_type}{3}.Position([2 4]) = [-rain_spread/2 rain_spread]; % set box width to match rain spread
-%     handles{feature_type}{4}.YData = [-rain_spread/2 rain_spread/2]; % set median line to match rain spread
+
+     % adjust raincloud
+     h1{1}.ShowBaseLine = 'off'; % hide baseline
+     h1{1}.EdgeAlpha = 0; % hide cloud outline
+     h2{1}.ShowBaseLine = 'off'; % hide baseline
+     h2{1}.EdgeAlpha = 0; % hide cloud outline
+     
+     % adjust rain
+     rain_scatter = reshape(rain_scatter, [1 length(rain_scatter)]); % reshape jitter array dimensions to match with YData of the scatter
+     h1{2}.YData = h1{2}.YData + rain_scatter; % set jitter to the data scatter
+     h2{2}.YData = h2{2}.YData + rain_scatter;
+     
+     % adjust boxplots
+      h1{3}.Position([2 4]) = [h1{3}.Position(2)-rain_spread/2 h1{3}.Position(4)+ rain_spread]; % set box width to match rain spread
+      h1{4}.YData = [h1{4}.YData(1) - rain_spread/2 h1{4}.YData(2) + rain_spread/2]; % set median line to match rain spread
+      h2{3}.Position([2 4]) = [h2{3}.Position(2)-rain_spread/2 h2{3}.Position(4)+ rain_spread]; 
+      h2{4}.YData = [h2{4}.YData(1) - rain_spread/2 h2{4}.YData(2) + rain_spread/2];
 
     xlim([-4 6.2]);
-    ylim([-0.3 1]);
-    yticks([0 0.5 1]);
-%     yticklabels({'F','P-F','P'});
-     view([90 -90]);
-    
+    ylim([-1.2 1.2]);
+    yticks(0);
+    yticklabels(labels{ecc_level})
+    view([90 -90]);
+    set(gca,'box','off','FontName','Arial','FontSize',14);
 end
 
+% set another empty axes for collating the rainclouds
+figure('Color','white');
+axes;
+xlim([-4 6.2]);
+ylim([-1.2 1.2]);
+yticks([-0.8 0 0.8]);
+yticklabels(labels);
+xlabel('\DeltatDxC');
+set(gca,'box','off','FontName','Arial','FontSize',14);
+view([90 -90]);
 
-% limits = cell2mat(get(ax,'YLim')); % get both axes limits
-% set(ax,'YLim',[min(limits(:)) max(limits(:))]); % set the same values for both axes
-% linkaxes(ax);
+
+[h,p] = corrcoef(cong_delta.eccentricity, object_size(:,2));
+
 
 
 
