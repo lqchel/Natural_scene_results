@@ -8,6 +8,14 @@ Results(:,9) = Results(:,8).*Results(:,9);
 img_id = unique(Results(:,11));
 subject_id = unique(Results(:,1));
 
+
+% % %% uncomment for checking Exp 1 data, first 6 patches of each trial
+% % Results = Results(Results(:,3)<= 6,:);
+
+%%%% uncomment for checking Exp 1 data, first 24 trials of each
+%%%% participant
+% Results = Results(Results(:,2)<= 27,:);
+
 % signal present and absent trial classification
 Find_N = Results(:,5) ==1;
 
@@ -65,9 +73,9 @@ for img = 1:length(img_id)
     dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
     dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
     temp = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
-    delta_1(img,1) = mean(temp);
+    delta_1(img,1) = mean(dxc_c_c) - mean(dxc_c_i);
     delta_1(img,2) = img;
-    delta_1(img,3) = col_length;
+    delta_1(img,3) = 15;
     [h,delta_1(img,4)] = ttest(temp,0); 
     delta_1(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,13));
     delta_1(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,7));
@@ -369,7 +377,7 @@ end
 b = 1;
 % selected_img = [5 35 12 45 107]; 
  %selected_img = 45; 
- selected_img = 45;
+ selected_img = 5;
 object_size = [];
 image_titles = {'Congruent','Incongruent','RGB difference','Detected object area',['\DeltaRGB histogram']};
 criteria = 10;
@@ -382,7 +390,7 @@ criteria = 10;
     current_object_size = (sum(sum(difference > criteria)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
-    %figure('Color','white');
+    figure('Color','white');
     
     for i = 1:5
         if i < 4
@@ -528,6 +536,19 @@ fitlme(data, 'delta ~ size + weibull + saliency')
 
 % eccentricity 
 lm13 = fitlme(data, 'delta ~ size*eccentricity + (1|image)')
+
+%% plot tDxC histogram
+colours = cbrewer('qual', 'Set2', 8); % https://au.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/34087/versions/2/screenshot.jpg
+num_bins = 20;
+h2 = histogram(incong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.8,'FaceColor',colours(2,:));
+h2.NumBins = num_bins;
+hold on
+h1 = histogram(cong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',colours(3,:));
+h1.NumBins = num_bins;
+hold off
+legend('off');
+xlabel(['\Delta' 'tDxC']),ylabel('Count');
+set(gca,'FontName','Arial','FontSize',14,'Box','off');
 
 %% delta tDxC against eccentricity
 addpath(genpath('C:\Users\liang\OneDrive\Documents\honours\research project\Experiment\RainCloudPlots-master'));

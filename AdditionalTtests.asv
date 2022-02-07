@@ -5,12 +5,12 @@
 Results = get_data2(1);
 
 
-%%%% uncomment for checking Exp 1 data, first 6 patches of each trial
-Results = Results(Results(:,3)<= 6,:);
+%%% uncomment for checking Exp 1 data, first 6 patches of each trial
+% Results = Results(Results(:,3)<= 6,:);
 
 %%%% uncomment for checking Exp 1 data, first 24 trials of each
 %%%% participant
-% Results = Results(Results(:,2)<= 27,:);
+Results = Results(Results(:,2)<= 27,:);
 
 
 %Find trials that presented N patches -- signal absent for hypo 1

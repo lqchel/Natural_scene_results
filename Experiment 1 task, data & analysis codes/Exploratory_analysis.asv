@@ -8,6 +8,14 @@ Results(:,9) = Results(:,8).*Results(:,9);
 img_id = unique(Results(:,11));
 subject_id = unique(Results(:,1));
 
+
+% % %% uncomment for checking Exp 1 data, first 6 patches of each trial
+% % Results = Results(Results(:,3)<= 6,:);
+
+%%%% uncomment for checking Exp 1 data, first 24 trials of each
+%%%% participant
+% Results = Results(Results(:,2)<= 27,:);
+
 % signal present and absent trial classification
 Find_N = Results(:,5) ==1;
 
@@ -65,9 +73,9 @@ for img = 1:length(img_id)
     dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
     dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
     temp = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
-    delta_1(img,1) = mean(temp);
+    delta_1(img,1) = mean(dxc_c_c) - mean(dxc_c_i);
     delta_1(img,2) = img;
-    delta_1(img,3) = col_length;
+    delta_1(img,3) = 15;
     [h,delta_1(img,4)] = ttest(temp,0); 
     delta_1(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,13));
     delta_1(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,7));
@@ -99,7 +107,16 @@ end
 cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
 incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
 
-
+%% plot tDxC histogram
+num_bins = 20;
+h2 = histogram(cong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.5);
+h2.NumBins = num_bins;
+hold on
+h1 = histogram(incong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.5);
+h1.NumBins = num_bins;
+hold off
+legend({'Congruent','Incongruent'});
+xlabel(['\Delta' 'tDxC']),ylabel('')
 %% compare delta between conditions
 
 [r1,p1] = corrcoef(cong_delta.delta, incong_delta.delta)
@@ -369,10 +386,10 @@ end
 b = 1;
 % selected_img = [5 35 12 45 107]; 
  %selected_img = 45; 
- selected_img = 45;
+ selected_img = 5;
 object_size = [];
 image_titles = {'Congruent','Incongruent','RGB difference','Detected object area',['\DeltaRGB histogram']};
-criteria = 0;
+criteria = 10;
 
 
  for img = 1:length(selected_img)
@@ -382,7 +399,7 @@ criteria = 0;
     current_object_size = (sum(sum(difference > criteria)))/(150^2);   
     object_size(b,:) = [img current_object_size];
     b = b+1;
-    %figure('Color','white');
+    figure('Color','white');
     
     for i = 1:5
         if i < 4
@@ -407,23 +424,23 @@ criteria = 0;
             Y1_cumulative  = cumsum(Y1)/150^2;
             plot(ax2,[Y1_cumulative 1],edges,'LineWidth',2);
 %              xlim([0.75 1]);
-             xlim([0.92 1])
+              xlim([0.97 1])
 %             ylim([0 400]);
 %             yticks(0:100:400);
             %%%% uncomment for normal criteria
-            yticks([0 50 100 150])
-            ylim([0 150])
+            yticks([0 50 100])
+            ylim([0 100])
             if img == length(selected_img)
             xlabel('Percentage');
             end
             
             ylabel(['\Delta RGB']);
             hold on
-             plot([0.95 1],[criteria criteria], 'r--','LineWidth', 1.5);
-%              plot([0.75 1],[criteria criteria], 'r--','LineWidth', 1.5);
+              plot([0.97 1],[criteria criteria], 'r--','LineWidth', 1.5);
+%               plot([0.75 1],[criteria criteria], 'r--','LineWidth', 1.5);
             hold off
-            text(0.97,145,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
-%             text(0.77,650,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
+            text(0.975,80,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
+%              text(0.77,650,['Size = ' num2str(round(object_size(img,2),3))], 'FontSize',14)
         end
         
         if img == 1
