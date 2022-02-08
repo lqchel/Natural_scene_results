@@ -56,84 +56,59 @@ for sub = 1:length(subject_id)
 end
 problem_data(1,:) = [];
 length(unique(problem_data(2,:)))
+
 %% original vs. modified: tDxC
-% s = zeros(length(img_id),1);
-% for p = 1:max(img_id)
-%     s(p,:) = sum(Results(:,11) == p & Results(:,6) == 1);
-% end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% congruent tDxC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-delta_1 = zeros(length(img_id),3);
-%size = zeros(80,1);
-cong_significance = zeros(80,1);
+index = {Find_Congruent_CP; Find_Congruent_IP; Find_Incongruent_IP; Find_Incongruent_CP};
 for img = 1:length(img_id)
-%     current_cong= imread(fullfile(folder1,theFiles1(img-2).name));
-%     current_incong= imread(fullfile(folder2,theFiles2(img-2).name));
-    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9)) length(Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9))]);
-    dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
-    dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
-    temp = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
-    delta_1(img,1) = mean(dxc_c_c) - mean(dxc_c_i);
-    delta_1(img,2) = img;
-    delta_1(img,3) = 15;
-    [h,delta_1(img,4)] = ttest(temp,0); 
-    delta_1(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,13));
-    delta_1(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,7));
-    clear temp
-    clear col_length
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% incongruent tDxC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-delta_2 = zeros(length(img_id),3);
-%condition_diff = zeros(80,1);
-incong_significance = zeros(80,1);
-for img = 1:length(img_id)
-    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9))]);
-    dxc_i_i = Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9);
-    dxc_i_c = Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9);
-    temp = dxc_i_i(1:col_length,:)-dxc_i_c(1:col_length,:);
-    delta_2(img,1) = mean(temp);
-    delta_2(img,2) = img_id(img);
-    delta_2(img,3) = col_length;
-    %condition_diff(img-2,1) = delta_1(img-2,1)-delta_2(img-2,1);
-    [h,delta_2(img,4)] = ttest(temp,0);
-    delta_2(img,5) = unique(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,13));
-    delta_2(img,6) = unique(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,7));
-    clear temp
+    for cong = 1:2
+        dxc_org = Results(Results(:,11)==img_id(img) & index{2.*cong-1},9);
+        dxc_mod = Results(Results(:,11)==img_id(img) & index{2.*cong},9);
+        img_num_sub = length(unique(Results(Results(:,11)==img_id(img) & index{2.*cong-1},1)));
+        % delta tDxC, image id, number of participants, difference between
+        % original and modified patch tDxC, eccentricity level, and location
+        delta_mt{cong}(img,:) = [mean(dxc_org) - mean(dxc_mod) img_id(img) img_num_sub ttest2(dxc_org,dxc_mod)...
+            unique(Results(Results(:,11)==img_id(img) & index{2.*cong-1},13))...
+            unique(Results(Results(:,11)==img_id(img) & index{2.*cong-1},7))]; 
+    end
 end
 
 %%%%%%%%%%%%%%%%%% tDxC tables for each condition %%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cong_delta = table(delta_1(:,1),delta_1(:,2),delta_1(:,3),delta_1(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
-incong_delta = table(delta_2(:,1),delta_2(:,2),delta_2(:,3),delta_2(:,4),delta_1(:,5),delta_1(:,6),'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
+cong_delta_ = array2table(delta_mt{1},'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
+incong_delta_ = array2table(delta_mt{2},'VariableNames',{'delta','img','num_sub','significance','eccentricity','location'});
 
+%% determine color scale for scatter plot
+c_n_i_n = cong_delta.significance == 0 & incong_delta.significance == 0;
+c_n_i_y = cong_delta.significance == 0 & incong_delta.significance == 1;
+c_y_i_n = cong_delta.significance == 1 & incong_delta.significance == 0;
+c_y_i_y = cong_delta.significance == 1 & incong_delta.significance == 1;
 
 %% compare delta between conditions
+org_or_mod = [0 1 0 1];
+cong_incong = [0 0 1 1];
+response = [];
+patch_type = [];
+congruence = [];
+condition_significance = [];
 
-[r1,p1] = corrcoef(cong_delta.delta, incong_delta.delta)
-
-condition_significance = zeros(80,1);
 for img = 1:length(img_id)
-    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9)) length(Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9))]);
-    dxc_c_c = Results(Results(:,11)==img_id(img) & Find_Congruent_CP,9);
-    dxc_c_i = Results(Results(:,11)==img_id(img) & Find_Congruent_IP,9);
-    temp1 = dxc_c_c(1:col_length,:) - dxc_c_i(1:col_length,:);
-    clear col_length
-    
-    col_length = min([length(Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9)) length(Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9))]);
-    dxc_i_i = Results(Results(:,11)==img_id(img) & Find_Incongruent_IP,9);
-    dxc_i_c = Results(Results(:,11)==img_id(img) & Find_Incongruent_CP,9);
-    temp2 = dxc_i_i(1:col_length,:)-dxc_i_c(1:col_length,:);
-    
-    [h,condition_significance(img,1)]= ttest2(temp1,temp2);
-    clear temp1
-    clear temp2
+    for in = 1:size(index,1)
+        if in == 1
+            response = Results(Results(:,11)==img_id(img) & index{in},9);
+            patch_type = zeros(length(Results(Results(:,11)==img_id(img) & index{in},9)),1) + org_or_mod(in);
+            congruence = zeros(length(Results(Results(:,11)==img_id(img) & index{in},9)),1) + cong_incong(in);
+        else
+            response = [response; Results(Results(:,11)==img_id(img) & index{in},9)];
+            patch_type = [patch_type; zeros(length(Results(Results(:,11)==img_id(img) & index{in},9)),1) + org_or_mod(in)];
+            congruence = [congruence; zeros(length(Results(Results(:,11)==img_id(img) & index{in},9)),1) + cong_incong(in)];
+        end
+         
+    end
+    anova_test = anovan(response,{categorical(patch_type),categorical(congruence)},'model',2,'varnames',{'patch_type','congruence'},'display','off');
+    condition_significance(img) = anova_test(3,:); % take the interaction term only
 end
 
-c_n_i_n = cong_delta.significance > 0.05 & incong_delta.significance > 0.05;
-c_n_i_y = cong_delta.significance > 0.05 & incong_delta.significance < 0.05;
-c_y_i_n = cong_delta.significance < 0.05 & incong_delta.significance > 0.05;
-c_y_i_y = cong_delta.significance < 0.05 & incong_delta.significance < 0.05;
 %% calculate weibull statistics
 
 %%%%%%%% weibull parameters for image contrast
@@ -554,7 +529,8 @@ set(gca,'FontName','Arial','FontSize',14,'Box','off');
 addpath(genpath('C:\Users\liang\OneDrive\Documents\honours\research project\Experiment\RainCloudPlots-master'));
 location = categorical([0 1 2]);
 cong = categorical([0 1]);
-
+%[0.1300 0.1100 0.7750 0.8150]
+%set(gca,'Color','none','XColor','none','YColor','none');
 figure;
 set(gcf, 'Color', 'white');
 set(gcf, 'InvertHardCopy', 'off'); % For keeping the black background when printing
@@ -639,11 +615,11 @@ for img = 1:max(img_id)
     c(img,1) = find(temp_array == 'p'); %%Find the CP position of the image
 end
 
-[delta_1_0,rank1] = sort(delta_1(:,1),'descend');
+[delta_1_0,rank1] = sort(cong_delta.delta(:,1),'descend'); % sort image pairs based on delta tDxC of congruence images
 delta_1_x = [delta_1_0 delta_1(rank1,2) delta_1(rank1,3) c(rank1,1)];
 delta_2_x = [delta_2(rank1,1) delta_2(rank1,2) delta_2(rank1,3) c(rank1,1)];
 
-cong_list =  {delta_1_x(c_n_i_n(rank1,1),:); delta_1_x(c_n_i_y(rank1,1),:);delta_1_x(c_y_i_n(rank1,1),:);delta_1_x(c_y_i_y(rank1,1),:)};
+cong_list =  {delta_1_x(c_n_i_n(rank1,1),:); delta_1_x(c_n_i_y(rank1,1),:);delta_1_x(c_y_i_n(rank1,1),:);delta_1_x(c_y_i_y(rank1,1),:)}; % categorize image pairs based on t-test significance
 incong_list = {delta_2_x(c_n_i_n(rank1,1),:); delta_2_x(c_n_i_y(rank1,1),:);delta_2_x(c_y_i_n(rank1,1),:);delta_2_x(c_y_i_y(rank1,1),:)};
 
 addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer');
@@ -754,49 +730,4 @@ end
 end
 
 
-%% separately analyze hit and CR for original vs. modified patches
-b = 1;
-for sub = 1:num_sub
-current_subject = Results(Results(:,1) == subject_id(sub),:);
-locations = unique(current_subject(:,13));
-    for loc = 1:length(locations)
-        selected_subset = current_subject(current_subject(:,13) == locations(loc),:);
-        Find_N = selected_subset(:,5) ==1;
-        Find_CAP = selected_subset(:,4) == 0 & selected_subset(:,5) == 2; 
-        Find_IAP = selected_subset(:,4) == 1 & selected_subset(:,5) == 3;
-        current_CR = sum(Find_N & selected_subset(:,8) == -1)/sum(Find_N);
-        current_hit = sum((Find_CAP|Find_IAP) & selected_subset(:,8) == 1)/sum(Find_CAP|Find_IAP);
-        mat(b,:) = [subject_id(sub) locations(loc) current_hit current_CR ];
-        b = b+1;
-
-    end
-
-end
-
-
-AUC_lme([repmat(mat(:,1),[2,1]) [zeros(length(mat),1); ones(length(mat),1)] repmat(mat(:,2),[2,1]) [mat(:,3);mat(:,4)]] ,2,2)
-AUC_lme([mat(:,1) mat(:,2) mat(:,3)],1,1)
-AUC_lme([mat(:,1) mat(:,2) mat(:,4)],1,1)
-
-for i = 1:3
-se_CR(i) = std(mat(mat(:,2)==locations(i),4))/sqrt(240);
-mean_CR(i) = mean(mat(mat(:,2)==locations(i),4));
-se_hit(i) = std(mat(mat(:,2)==locations(i),3))/sqrt(240);
-mean_hit(i) = mean(mat(mat(:,2)==locations(i),3));
-end
-
-errorbar([0 6.5 9.2],mean_CR,se_CR,'.-','LineWidth',1.2,'Capsize',10);
-hold on
-errorbar([0 6.5 9.2],mean_hit,se_hit,'.-','LineWidth',1.2,'Capsize',10);
-hold off
-legend({'CR','Hit'})
-ylabel('Proportion of Responses');
-xticks([0 6.5 9.2]);
-set(gca,'XTickLabel',{'F','P','P-P'},'FontSize',12,'Box','off');
-ylim([0.5 1]);
-xlabel('Patch location');
-
-[h,p] = ttest(mat(mat(:,2) == locations(1),3), mat(mat(:,2) == locations(1),4))
-[h,p] = ttest(mat(mat(:,2) == locations(2),3), mat(mat(:,2) == locations(2),4))
-[h,p] = ttest(mat(mat(:,2) == locations(3),3), mat(mat(:,2) == locations(3),4))
 
