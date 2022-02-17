@@ -126,4 +126,153 @@ clear cong_delta
 clear incong_delta
 clear Results
 
+%% display images based on tDxC
+exp = 2;
+% load image list
+folder1 = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\squareimage\congruent cropped'; 
+folder2 = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\squareimage\incongruent cropped';
+filePattern1 = fullfile(folder1,'*.jpg');
+filePattern2 = fullfile(folder2,'*.jpg');
+theFiles1 = dir(filePattern1);
+theFiles2 = dir(filePattern2);
+
+% load patch list
+file_path_Congruent_Patch = 'C:\Users\liang\OneDrive\Documents\honours\research project\MassiveReport_Exp2_QL\congruent patch\';
+filePattern3 = fullfile(file_path_Congruent_Patch,'*.jpg');
+theFiles3 = dir(filePattern3);
+
+% record critical object location in each image
+for img = 1:max(img_id)
+    Presentation_image_patch_name = sprintf('cong_%d_*.jpg',img);
+    img_path_list = dir(strcat(file_path_Congruent_Patch,Presentation_image_patch_name));
+    num_pch = length(img_path_list);  
+    temp_array = ones(1,num_pch);
+    for kk = 1:num_pch
+        temp_array(kk) = img_path_list(kk).name(length(img_path_list(kk).name)-4);
+    end
+    c(img,1) = find(temp_array == 'p'); %%Find the CP position of the image
+end
+
+[delta_1_0,rank1] = sort(cong_delta.delta,'descend'); % sort image pairs based on delta tDxC of congruence images
+delta_1_x = [delta_1_0 cong_delta.img(rank1,1) cong_delta.num_sub(rank1,1) c(rank1,1)];
+delta_2_x = [incong_delta.delta(rank1,1) incong_delta.img(rank1,1) incong_delta.num_sub(rank1,1) c(rank1,1)];
+
+cong_list =  {delta_1_x(c_n_i_n(rank1,1),:); delta_1_x(c_n_i_y(rank1,1),:);delta_1_x(c_y_i_n(rank1,1),:);delta_1_x(c_y_i_y(rank1,1),:)}; % categorize image pairs based on t-test significance
+incong_list = {delta_2_x(c_n_i_n(rank1,1),:); delta_2_x(c_n_i_y(rank1,1),:);delta_2_x(c_y_i_n(rank1,1),:);delta_2_x(c_y_i_y(rank1,1),:)};
+
+addpath('C:\Users\liang\Documents\Experiment Codes\Natural_scene_results\cbrewer');
+colours = cbrewer('qual','Pastel2',8);
+figure_colours = [colours(8,:); colours(2,:); colours(3,:); 1 1 1];
+
+%congruent
+for category = 1:4
+    current_cong_list = cong_list{category,1};
+    current_incong_list = incong_list{category,1};
+    
+    if length(current_cong_list(:,1)) <= 5
+        big_img_num = 1;
+    else
+        big_img_num = round(length(current_cong_list(:,1)),-1)/5;       
+    end    
+    
+for i = 1:big_img_num
+    f = figure('Color',figure_colours(category,:));
+    set(gcf,'InvertHardCopy','off');
+for p = 1:5
+    current_cong= imresize(imread(fullfile(folder1,theFiles1(current_cong_list((i-1).*5+p,2)).name)),[150 150]); % load and resize image to square shape
+    ax1= axes('Position',[0.015+(p-1).*0.19 0.52 0.2 0.2]); % fix axes position in figure window
+    image(ax1,current_cong); % present image
+    
+    % mark out the critical objects
+    hold on
+    if current_cong_list((i-1).*5+p,4) == 1
+        % outline the critical object on the image in red, using the x and y
+        % coordinates of the object area
+        plot(ax1,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2); 
+    elseif current_cong_list((i-1).*5+p,4) == 2
+        plot(ax1,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 3
+        plot(ax1,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 4
+        plot(ax1,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 5
+        plot(ax1,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 6
+        plot(ax1,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 7
+        plot(ax1,[1 50 50 1 0],[150 150 100 100 150],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 8
+        plot(ax1,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
+    else
+        plot(ax1,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
+    end
+    hold off
+    axis square
+    
+    if exp == 1 % show number of subjects allocated to image for Exp 1
+        title({['\Delta','cong = ', num2str(round(current_cong_list((i-1).*5+p,1),1)),'[',num2str(current_cong_list((i-1).*5 + p,3)),']'],...
+            ['\Delta','incong = ', num2str(round(current_incong_list((i-1).*5+p,1),1)),'[',num2str(current_incong_list((i-1).*5 + p,3)),']']});
+    else
+        title({['\Delta','cong = ',  num2str(round(current_cong_list((i-1).*5+p,1),1))],...
+            ['\Delta','incong = ', num2str(round(current_incong_list((i-1).*5+p,1),1))]});
+    end
+    set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+    xticks([]),yticks([]);
+    
+    current_incong= imresize(imread(fullfile(folder2,theFiles2(current_cong_list((i-1).*5+p,2)).name)),[150 150]);
+    ax2= axes('Position',[0.015+(p-1).*0.19 0.3 0.2 0.2]);
+    image(ax2,current_incong);
+    
+    % mark out the critical objects
+    hold on
+    if current_cong_list((i-1).*5+p,4) == 1
+        plot(ax2,[1 50 50 1 1],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 2
+        plot(ax2,[50 100 100 50 50],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 3
+        plot(ax2,[100 150 150 100 100],[50 50 1 1 50],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 4
+        plot(ax2,[1 50 50 1 1],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 5
+        plot(ax2,[50 100 100 50 50],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 6
+        plot(ax2,[100 150 150 100 100],[100 100 50 50 100],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 7
+        plot(ax2,[1 50 50 1 1],[150 150 100 100 150],'r-','LineWidth',1.2);
+    elseif current_cong_list((i-1).*5+p,4) == 8
+        plot(ax2,[50 100 100 50 50],[150 150 100 100 150],'r-','LineWidth',1.2);
+    else
+        plot(ax2,[100 150 150 100 100],[150 150 100 100 150],'r-','LineWidth',1.2);
+    end
+    hold off
+    axis square
+    set(gca,'FontName','Arial','FontSize',8,'FontWeight','normal','Box','off','XColor','none','YColor','none');
+    xticks([]),yticks([]);
+    
+    if (i-1).*5+p+1 > length(current_cong_list(:,1))
+        break
+    end
+end
+    if category == 1 && i == 1
+        id = i;
+    else
+        id = id+1;
+    end
+    if id < 10
+        filename = ['exp_' num2str(exp) 'cong_0', num2str(id),'.jpg'];
+    else
+        filename = ['exp_' num2str(exp) 'cong_', num2str(id), '.jpg'];
+    end
+     saveas(gcf,filename);
+% if big_img_num ~= 2
+ close(f);
+% end
+end
+
+
+
+
+end
+
+
 end
