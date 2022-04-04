@@ -152,7 +152,7 @@ end
 % xlabel('Scale (Beta)');
 % ylabel('Shape (Gamma)');
 
-%% plot original color image, gradient magnitude image, histogram and fitted weibull distribution
+%% (For Demo - can skip for data analysis purpose) plot original color image, gradient magnitude image, histogram and fitted weibull distribution
 
  sel_img = [12 1 48 54 97];
 
@@ -199,25 +199,7 @@ for i = 1:length(sel_img)
     end
 end
 
-% figure;
-% for i = 1:length(sel_img)
-%     current_colour_img =  imresize(imread(fullfile(folder2,theFiles2(sel_img(i)).name)),[150 150]); %%% congruent
-%     gradient_mag = imgradient(rgb2gray(current_colour_img));
-%     gradient_vector = reshape(gradient_mag,[150.*150 1]) + 0.0001; % add 0.0001 to the gradient magnitude matrix so they are all positive values
-%     pd = fitdist(gradient_vector,'weibull');
-%     subplot(1,2,1),imshow(uint8(gradient_mag));
-%     subplot(1,2,2);
-%     histogram(gradient_mag,256,'Normalization','pdf')
-%     hold on
-%     x = linspace(0,max(gradient_vector));
-%     plot(x,pdf(pd,x),'LineWidth',3);
-%     xlim([0 max(gradient_vector)]);
-%     hold off
-%     title(['\beta' ' = ' num2str(round(pd.A,2))]);
-%     xlabel('Edge Strength'), ylabel('Probability');
-%     set(gca,'FontName','Arial','FontSize',14);
-%     axis square
-% end
+
 %% calculate sailiency difference statistics for each image
 %%%% require SaliencyToolbox 2.3 by Itti et al
 %%%% download link: http://www.saliencytoolbox.net/doc/index.html
@@ -262,7 +244,7 @@ for img = 1:length(img_id)
     saliency_difference = final_salmap(:,:,1) - final_salmap(:,:,2);
 %     mean_saliency = mean(final_salmap, 3);
     accepted_difference = saliency_difference(range_rows,range_cols);
-%     accepted_mean = mean_saliency(x,y);
+ %    accepted_difference = mean_saliency(range_rows,range_cols);
     saliency_stat(b,:) = [img sum(abs(accepted_difference),'all')];
     b = b+1;
     
@@ -270,7 +252,7 @@ end
 
 
 
-%% plotting images and saliency
+%% (For Demo - can skip for data analysis purpose) plotting images and saliency
 addpath(genpath('C:\Users\liang\Documents\Experiment Codes\SaliencyToolbox'));
 final_salmap = [];
 selected_img = [5 42 35];
@@ -337,18 +319,8 @@ for img = 1:length(img_id)
     clear difference_mat
 end
 
-% figure('Color','white');
-% [Y1,edges_1] = histcounts(object_size(:,2),length(img_id));
-% Y1_cumulative  = cumsum(Y1);
-% subplot(1,2,1),plot(edges_1,[Y1_cumulative max(img_id)],'LineWidth',1.2);
-% xlabel('Raw Object Size Data'), ylabel('Count');
-% 
-% [Y2,edges_2] = histcounts(object_size(:,3),length(img_id));
-% Y2_cumulative = cumsum(Y2);
-% subplot(1,2,2),plot(edges_2,[Y2_cumulative max(img_id)],'LineWidth',1.2);
-% xlabel('Log-transformed Object Size Data'), ylabel('Count');
 
-%% plotting object size examples
+%% (For Demo - can skip for data analysis purpose) plotting object size examples
 b = 1;
 % selected_img = [5 35 12 45 107]; 
  %selected_img = 45; 
@@ -468,7 +440,8 @@ incong_size_effect = compare(lm1_incong_reduced, lm1_incong)
 
 
 %
-figure('Color','white');
+% figure('Color','white');
+subplot(1,2,2)
 dot_colours = cbrewer('qual','Set2',8);
 line_colour = cbrewer('qual','Set1',8);
 o_effects_cong = fixedEffects(lm1_cong);
@@ -482,9 +455,9 @@ plot([x_min x_max],[x_min.*o_effects_cong(2,:) + o_effects_cong(1,:) x_max.*o_ef
 plot([x_min x_max],[x_min.*o_effects_incong(2,:) + o_effects_incong(1,:) x_max.*o_effects_incong(2,:) + o_effects_incong(1,:)],'Color',line_colour(1,:),'LineWidth',2.3);
 hold off
 set(gca,'FontName','Arial','FontSize',16);
-ylim([-6 6]),xlim([x_min x_max]);
+ylim([-5 6]),xlim([x_min x_max]);
 xlabel('Log-scale Object Size');
-ylabel('\DeltatDxC');
+ylabel('Mean \DeltaDxC');
 
 
 % weibull
@@ -555,98 +528,19 @@ size_effect = compare(lm12,lm11)
 fitlme(data, 'delta ~ size + weibull + saliency')
 
 % eccentricity 
-% lm13 = fitlme(data, 'delta ~ size*eccentricity + (1|image)')
-% lm14 = fitlme(data, 'delta ~ size + eccentricity + (1|image)')
-% lm15 = fitlme(data, 'delta ~ size + ')
-% se_interaction = compare(lm14,lm13)
-% ecc_effect_i = compare
-% lm15 = fitlme(data, 'delta ~ size + (1|image)')
+lm13 = fitlme(data, 'delta ~ size*eccentricity + (1|image)')
+lm14 = fitlme(data, 'delta ~ size + eccentricity + (1|image)')
+lm15 = fitlme(data, 'delta ~ size + ')
+se_interaction = compare(lm14,lm13)
+ecc_effect_i = compare
+lm15 = fitlme(data, 'delta ~ size + (1|image)')
 lm13 = fitlme(data, 'delta ~ eccentricity + (1|image)')
 lm14 = fitlme(data, 'delta ~ 1+(1|image)')
 ecc_effect = compare(lm14,lm13)
 
 
-%% plot tDxC histogram
-colours = cbrewer('qual', 'Set2', 8); % https://au.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/34087/versions/2/screenshot.jpg
-num_bins = 20;
-h2 = histogram(incong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.8,'FaceColor',colours(2,:));
-h2.NumBins = num_bins;
-hold on
-h1 = histogram(cong_delta.delta,num_bins,'EdgeAlpha',0,'FaceAlpha',0.7,'FaceColor',colours(3,:));
-h1.NumBins = num_bins;
-hold off
-legend('off');
-xlabel(['\Delta' 'tDxC']),ylabel('Count');
-set(gca,'FontName','Arial','FontSize',14,'Box','off');
-
-%% delta tDxC against eccentricity
-addpath(genpath('C:\Users\liang\OneDrive\Documents\honours\research project\Experiment\RainCloudPlots-master'));
-location = categorical([0 1 2]);
-cong = categorical([0 1]);
-%[0.1300 0.1100 0.7750 0.8150]
-%set(gca,'Color','none','XColor','none','YColor','none');
-figure;
-set(gcf, 'Color', 'white');
-set(gcf, 'InvertHardCopy', 'off'); % For keeping the black background when printing
-% set(gcf, 'RendererMode', 'manual');
-% set(gcf, 'Renderer', 'painters');
-labels = {'F','P-F','P'};
-colours = cbrewer('qual', 'Set2', 8); % https://au.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/34087/versions/2/screenshot.jpg
- rain_spread = 0.1; % jitter amount of scatter plot
-
-for ecc_level = 1 : size(location,2)
-   
-    subplot(1,3,ecc_level);
-    set(gca, 'XAxisLocation', 'top');
-
- 
-    % Create raincloud
-      rain_scatter = (rand(sum(data.eccentricity == location(ecc_level) & data.congruence == cong(1)), 1) - 0.5) * rain_spread; % jitter for the scatter plot
-      h1 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(1),:), 'box_on', 1, 'color', colours(3, :), 'alpha', 0.8,...
-        'box_dodge', 1, 'box_dodge_amount', 0.7, 'dot_dodge_amount', 0.7,...
-        'box_col_match', 0,'density_type','rash');
-      h2 = raincloud_plot(data.delta(data.eccentricity == location(ecc_level) & data.congruence == cong(2),:), 'box_on', 1, 'color', colours(2, :), 'alpha', 0.8,...
-        'box_dodge', 1, 'box_dodge_amount', 1.5, 'dot_dodge_amount',1.5,...
-        'box_col_match', 0,'density_type','rash');
-
-     % adjust raincloud
-     h1{1}.ShowBaseLine = 'off'; % hide baseline
-     h1{1}.EdgeAlpha = 0; % hide cloud outline
-     h2{1}.ShowBaseLine = 'off'; % hide baseline
-     h2{1}.EdgeAlpha = 0; % hide cloud outline
-     
-     % adjust rain
-     rain_scatter = reshape(rain_scatter, [1 length(rain_scatter)]); % reshape jitter array dimensions to match with YData of the scatter
-     h1{2}.YData = h1{2}.YData + rain_scatter; % set jitter to the data scatter
-     h2{2}.YData = h2{2}.YData + rain_scatter;
-     
-     % adjust boxplots
-      h1{3}.Position([2 4]) = [h1{3}.Position(2)-rain_spread/2 h1{3}.Position(4)+ rain_spread]; % set box width to match rain spread
-      h1{4}.YData = [h1{4}.YData(1) - rain_spread/2 h1{4}.YData(2) + rain_spread/2]; % set median line to match rain spread
-      h2{3}.Position([2 4]) = [h2{3}.Position(2)-rain_spread/2 h2{3}.Position(4)+ rain_spread]; 
-      h2{4}.YData = [h2{4}.YData(1) - rain_spread/2 h2{4}.YData(2) + rain_spread/2];
-
-    xlim([-4 6.2]);
-    ylim([-1.2 1.2]);
-    yticks(0);
-    yticklabels(labels{ecc_level})
-    view([90 -90]);
-    set(gca,'box','off','FontName','Arial','FontSize',14);
-end
-
-% set another empty axes for collating the rainclouds
-figure('Color','white');
-axes;
-xlim([-4 6.2]);
-ylim([-1.2 1.2]);
-yticks([-0.8 0 0.8]);
-yticklabels(labels);
-xlabel('\DeltatDxC');
-set(gca,'box','off','FontName','Arial','FontSize',14);
-view([90 -90]);
 
 
-[h,p] = corrcoef(cong_delta.eccentricity, object_size(:,2));
 
 
 
